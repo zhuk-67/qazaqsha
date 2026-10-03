@@ -17,21 +17,24 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
 
-    // Формируем внутренний e-mail из логина, так как Supabase требует формат почты
-    const fakeEmail = `${username.trim().toLowerCase()}@qazaqqadam.local`
+    const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '')
+    const fakeEmail = `${cleanUsername}@qazaqqadam.local`
 
     try {
       if (isSignUp) {
-        // Тіркелу (Регистрация)
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: fakeEmail,
           password: password,
         })
         if (error) throw error
-        setMessage('Тіркелу сәтті өтті! Енді жүйеге кіре аласыз.')
-        setIsSignUp(false)
+        
+        if (data.session) {
+          router.push('/learning-path')
+        } else {
+          setMessage('Тіркелу сәтті өтті! Енді кіру батырмасын басыңыз.')
+          setIsSignUp(false)
+        }
       } else {
-        // Кіру (Вход)
         const { error } = await supabase.auth.signInWithPassword({
           email: fakeEmail,
           password: password,
