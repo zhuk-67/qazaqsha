@@ -23,7 +23,7 @@ export default function HomePage() {
 
           <div className="flex items-center space-x-4">
             <Link
-              href="/auth"
+              href="/login"
               className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Кіру
@@ -63,10 +63,10 @@ export default function HomePage() {
               Деңгейді анықтау (A1 - B2)
             </Link>
             <Link
-              href="/demo"
+              href="/login"
               className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-semibold text-slate-200 border border-slate-700 hover:bg-slate-800/60 transition-colors"
             >
-              Демо-сабақты көру
+              Кіру / Тіркелу
             </Link>
           </div>
 
