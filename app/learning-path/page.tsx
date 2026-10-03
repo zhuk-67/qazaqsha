@@ -1,9 +1,10 @@
-'use 'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { lessonContent } from '@/lib/lessons'
 
 interface Profile {
   username: string
@@ -279,9 +280,18 @@ export default function LearningPathPage() {
                           ✓ Өтілді
                         </span>
                       ) : isUnlocked ? (
-                        <span className="px-4 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
-                          Сабақ жақында ашылады
-                        </span>
+                        lessonContent[lesson.id] ? (
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all inline-block"
+                          >
+                            Бастау
+                          </Link>
+                        ) : (
+                          <span className="px-4 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
+                            Сабақ жақында ашылады
+                          </span>
+                        )
                       ) : (
                         <span className="px-4 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold">
                           🔒 Құлыпталған
