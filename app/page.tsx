@@ -115,7 +115,7 @@ export default function HomePage() {
             Қазақ тілін үйренуге арналған платформа
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-5">
-            Қазақ тілін үйрен — <span className="bg-gradient-to-r from-teal-300 to-emerald-400 bg-clip-text text-transparent">қадам сайын</span>
+            Өзге тілдің бәрін біл — <span className="bg-gradient-to-r from-teal-300 to-emerald-400 bg-clip-text text-transparent">өз тіліңді құрметте</span>
           </h1>
           <p className="text-slate-400 text-lg mb-8 leading-relaxed">
             Алфавиттен бастап күнделікті сөйлесуге дейін: қысқа сабақтар, тесттер және нақты прогресс. Деңгейіңді анықта да, бүгіннен оқуды баста.
@@ -243,7 +243,7 @@ export default function HomePage() {
         <div className="grid md:grid-cols-3 gap-5">
           <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold">A1 — бастауыш</h3>
+              <h3 className="text-xl font-bold">A1 — Бастауыш</h3>
               <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30">Ашық</span>
             </div>
             <ul className="text-sm text-slate-400 space-y-1.5 mb-4">
@@ -257,14 +257,14 @@ export default function HomePage() {
           </div>
           <div className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-6 opacity-80">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold">A2 — негізгі</h3>
+              <h3 className="text-xl font-bold">A2 — Негізгі</h3>
               <span className="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg border border-slate-700">Жақында</span>
             </div>
             <p className="text-sm text-slate-500">Күнделікті әңгіме, сөйлем құрау, негізгі грамматика.</p>
           </div>
           <div className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-6 opacity-80">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold">B1 — орта</h3>
+              <h3 className="text-xl font-bold">B1 — Орта</h3>
               <span className="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg border border-slate-700">Жақында</span>
             </div>
             <p className="text-sm text-slate-500">Күрделі сөйлемдер, пікір білдіру, мәтін оқу.</p>
