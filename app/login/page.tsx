@@ -3,6 +3,35 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+// Supabase қателерін қазақшаға аударады
+function translateError(raw: string): string {
+  const m = raw.toLowerCase()
+
+  if (m.includes('invalid login credentials')) {
+    return 'Логин немесе құпия сөз қате.'
+  }
+  if (m.includes('already registered') || m.includes('already been registered')) {
+    return 'Бұл логин бұрын тіркелген. Басқа логин таңдаңыз немесе «Кіру» қойындысына өтіңіз.'
+  }
+  if (m.includes('at least 6')) {
+    return 'Құпия сөз кемінде 6 символдан тұруы керек.'
+  }
+  if (m.includes('email not confirmed')) {
+    return 'Аккаунт әлі расталмаған. Сайт иесіне хабарласыңыз.'
+  }
+  if (m.includes('rate limit') || m.includes('security purposes')) {
+    return 'Тым көп әрекет жасалды. Біраз күтіп, қайта көріңіз.'
+  }
+  if (m.includes('failed to fetch') || m.includes('network')) {
+    return 'Интернет байланысын тексеріңіз.'
+  }
+  if (m.includes('signups not allowed') || m.includes('signup is disabled')) {
+    return 'Қазір тіркелу өшірулі.'
+  }
+  return 'Қате орын алды. Қайта тырысып көріңіз. (' + raw + ')'
+}
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false) // false = Кіру, true = Тіркелу
@@ -19,11 +48,11 @@ export default function LoginPage() {
     setMessage('')
     setIsError(false)
 
-    // Формируем чистый логин
+    // Логинді тазалаймыз: тек ағылшын әріптері мен сандар
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
-    
+
     if (!cleanUsername) {
-      setMessage('Логин тек ағылшын әріптері мен саннан тұруы керек')
+      setMessage('Логин тек ағылшын әріптері мен саннан тұруы керек.')
       setIsError(true)
       setLoading(false)
       return
@@ -33,7 +62,7 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        // --- ТІРКЕЛУ (РЕГИСТРАЦИЯ) ---
+        // --- ТІРКЕЛУ ---
         const { data, error } = await supabase.auth.signUp({
           email: formattedEmail,
           password: password,
@@ -44,12 +73,12 @@ export default function LoginPage() {
         if (data.session) {
           router.push('/learning-path')
         } else {
-          setMessage('Тіркелу сәтті өтті! Енді "Кіру" қосымшасына өтіп, жүйеге кіріңіз.')
+          setMessage('Тіркелу сәтті өтті! Енді логин мен құпия сөзіңізбен жүйеге кіріңіз.')
           setIsError(false)
-          setIsSignUp(false) // Автоматически переключаем на вход после регистрации
+          setIsSignUp(false)
         }
       } else {
-        // --- КІРУ (ВХОД) ---
+        // --- КІРУ ---
         const { error } = await supabase.auth.signInWithPassword({
           email: formattedEmail,
           password: password,
@@ -58,9 +87,10 @@ export default function LoginPage() {
         if (error) throw error
         router.push('/learning-path')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsError(true)
-      setMessage(error.message || 'Қате орын алды. Логин немесе құпия сөзді тексеріңіз.')
+      const raw = error instanceof Error ? error.message : ''
+      setMessage(translateError(raw))
     } finally {
       setLoading(false)
     }
@@ -69,12 +99,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
-        
-        {/* Переключатель Вкладка: Кіру / Тіркелу */}
+
+        <Link
+          href="/"
+          className="inline-block mb-5 text-xs font-bold text-teal-300 hover:text-teal-200 transition-colors"
+        >
+          ← Басты бетке оралу
+        </Link>
+
+        {/* Қойынды: Кіру / Тіркелу */}
         <div className="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700">
           <button
             type="button"
-            onClick={() => { setIsSignUp(false); setMessage(''); }}
+            onClick={() => { setIsSignUp(false); setMessage('') }}
             className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
               !isSignUp ? 'bg-teal-500 text-slate-900 shadow' : 'text-slate-400 hover:text-white'
             }`}
@@ -83,7 +120,7 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => { setIsSignUp(true); setMessage(''); }}
+            onClick={() => { setIsSignUp(true); setMessage('') }}
             className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
               isSignUp ? 'bg-teal-500 text-slate-900 shadow' : 'text-slate-400 hover:text-white'
             }`}
@@ -101,8 +138,8 @@ export default function LoginPage() {
 
         {message && (
           <div className={`mb-4 p-3 rounded-lg text-sm text-center border ${
-            isError 
-              ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+            isError
+              ? 'bg-red-500/10 border-red-500/30 text-red-400'
               : 'bg-teal-500/10 border-teal-500/30 text-teal-300'
           }`}>
             {message}
@@ -111,15 +148,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleAuth}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-300 mb-2">Логин (ағылшынша):</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Логин:</label>
             <input
               type="text"
               placeholder="user123"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
               className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-teal-400 transition-colors"
             />
+            <p className="text-xs text-slate-500 mt-1.5">Тек ағылшын әріптері мен сандар</p>
           </div>
 
           <div className="mb-6">
@@ -131,6 +170,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
               className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-teal-400 transition-colors"
             />
           </div>
