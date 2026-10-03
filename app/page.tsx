@@ -23,7 +23,7 @@ export default function HomePage() {
 
           <div className="flex items-center space-x-4">
             <Link
-              href="/login"
+              href="/auth"
               className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Кіру
