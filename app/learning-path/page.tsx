@@ -1,243 +1,339 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
-interface Lesson {
-  id: string;
-  title: string;
-  subtitle: string;
-  level: 'A1' | 'A2' | 'B1' | 'B2';
-  type: 'Vocabulary' | 'Grammar' | 'Listening' | 'Reading';
-  completed: boolean;
-  locked: boolean;
+interface Profile {
+  username: string
+  level: string
+  streak: number
+  points: number
+  completed_lessons: string[]
 }
 
-const initialLessons: Lesson[] = [
-  // A1 Level
-  { id: 'a1-1', title: 'Алфавит және дыбыстар', subtitle: 'Қазақ тілінің төл дыбыстары (Ә, І, Ң, Ғ, Ү, Ұ, Қ, Ө, Һ)', level: 'A1', type: 'Vocabulary', completed: true, locked: false },
-  { id: 'a1-2', title: 'Талдау және Сәлемдесу', subtitle: 'Сәлеметсіз бе! Танысқаныма қуаныштымын', level: 'A1', type: 'Vocabulary', completed: true, locked: false },
-  { id: 'a1-3', title: 'Жіктеу есімдіктері мен Жіктеу жалғауы', subtitle: 'Мен студентпін, Сен оқушысың, Ол мұғалім', level: 'A1', type: 'Grammar', completed: false, locked: false },
-  { id: 'a1-4', title: 'Сандар мен Уақыт', subtitle: '1-ден 100-ге дейінгі сандар, сағат қанша?', level: 'A1', type: 'Vocabulary', completed: false, locked: true },
-  { id: 'a1-5', title: 'Отбасы және Достар', subtitle: 'Әке, ана, аға, әпке, іні, қарындас', level: 'A1', type: 'Reading', completed: false, locked: true },
-  
-  // A2 Level
-  { id: 'a2-1', title: 'Көптік жалғаулар', subtitle: '-лар/-лер, -дар/-дер, -тар/-тер ережелері', level: 'A2', type: 'Grammar', completed: false, locked: true },
-  { id: 'a2-2', title: 'Септіктер жүйесі (Падежи)', subtitle: 'Атау, ілік, барыс, табыс, жатыс, шығыс, көмектес', level: 'A2', type: 'Grammar', completed: false, locked: true },
-  { id: 'a2-3', title: 'Өткен шақ (Жедел өткен шақ)', subtitle: 'Кеше мен кітап оқыдым, кино көрдім', level: 'A2', type: 'Listening', completed: false, locked: true },
-
-  // B1 Level
-  { id: 'b1-1', title: 'Сабақтас құрмалас сөйлемдер', subtitle: 'Шартты рай (-са/-се) және себеп-салдар байланысы', level: 'B1', type: 'Grammar', completed: false, locked: true },
-  { id: 'b1-2', title: 'Аудирование: Мәдениет және Өнер', subtitle: 'Қазақ халқының салт-дәстүрлері мен өнері', level: 'B1', type: 'Listening', completed: false, locked: true }
-];
-
 export default function LearningPathPage() {
-  const [lessons] = useState<Lesson[]>(initialLessons);
-  const [activeTab, setActiveTab] = useState<'A1' | 'A2' | 'B1' | 'B2'>('A1');
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
+  const router = useRouter()
 
-  const activeLessons = lessons.filter((l) => l.level === activeTab);
-  const completedCount = lessons.filter((l) => l.completed).length;
-  const progressPercent = Math.round((completedCount / lessons.length) * 100);
+  useEffect(() => {
+    async function loadUserData() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      // Загружаем профиль
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (data) {
+        setProfile(data)
+      } else {
+        setProfile({
+          username: user.email?.split('@')[0] || 'Оқушы',
+          level: 'A1',
+          streak: 1,
+          points: 50,
+          completed_lessons: ['a1-1']
+        })
+      }
+      setLoading(false)
+    }
+
+    loadUserData()
+  }, [router])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+        <p className="text-teal-400 font-medium animate-pulse">Жүктелуде...</p>
+      </div>
+    )
+  }
+
+  // Траектория уроков A1
+  const a1Lessons = [
+    { id: 'a1-1', title: '1. Алфавит және дыбыстар', desc: 'Ерекше дыбыстар: Ә, Ғ, Қ, Ң, Ө, Ү, Ұ, І, Һ', icon: '🔤', type: 'reading' },
+    { id: 'a1-2', title: '2. Сәлемдесу мен танысу', desc: 'Сәлеметсіз бе! Есіміңіз кім?', icon: '👋', type: 'interactive' },
+    { id: 'a1-3', title: '3. Сандар мен уақыт', desc: '1-ден 100-ге дейін санау', icon: '🔢', type: 'quiz' },
+    { id: 'a1-4', title: '4. Жіктеу есімдіктері', desc: 'Мен, сен, ол, біз, сіздер...', icon: '👥', type: 'grammar' },
+    { id: 'a1-5', title: '5. Отбасы және мүшелері', desc: 'Әке, ана, аға, әпке, қарындас', icon: '🏠', type: 'vocab' },
+  ]
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/90 px-4 py-4 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2 text-teal-400 font-bold hover:text-teal-300">
-            <span>← Басты бет</span>
-          </Link>
-
-          {/* User Progress Stats Header */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-              <span className="text-xl">🔥</span>
-              <div>
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">Стрик</div>
-                <div className="text-xs font-bold text-amber-400">7 күн қатар</div>
-              </div>
+    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col md:flex-row">
+      
+      {/* Sidebar / Навигация */}
+      <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+              ҚҰ
             </div>
+            <span className="font-extrabold text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              QazaqQadam
+            </span>
+          </div>
 
-            <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-              <span className="text-xl">🏆</span>
-              <div>
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">Ұпай (XP)</div>
-                <div className="text-xs font-bold text-teal-400">450 XP</div>
-              </div>
+          <nav className="space-y-2">
+            <button
+              onClick={() => setActiveTab('path')}
+              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                activeTab === 'path' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
+              }`}
+            >
+              🗺️ Оқу траекториясы
+            </button>
+            <button
+              onClick={() => setActiveTab('vocab')}
+              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                activeTab === 'vocab' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
+              }`}
+            >
+              📚 Сөздік & Флеш-карта
+            </button>
+            <button
+              onClick={() => setActiveTab('grammar')}
+              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                activeTab === 'grammar' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
+              }`}
+            >
+              ✍️ Грамматика
+            </button>
+            <button
+              onClick={() => setActiveTab('achievements')}
+              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                activeTab === 'achievements' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
+              }`}
+            >
+              🏆 Жетістіктер
+            </button>
+          </nav>
+        </div>
+
+        <div className="pt-6 border-t border-slate-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-teal-500/20 border border-teal-400 text-teal-300 flex items-center justify-center font-bold">
+              {profile?.username[0].toUpperCase()}
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{profile?.username}</p>
+              <p className="text-xs text-slate-400">Деңгей: {profile?.level}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg border border-red-500/20 transition-all"
+          >
+            Шығу
+          </button>
+        </div>
+      </aside>
+
+      {/* Основная часть контента */}
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        
+        {/* Верхняя панель статистики (Стрик, Уровень, Баллы) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+            <span className="text-3xl">🔥</span>
+            <div>
+              <p className="text-2xl font-bold text-orange-400">{profile?.streak} күн</p>
+              <p className="text-xs text-slate-400">Үздіксіз стрик</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+            <span className="text-3xl">🎯</span>
+            <div>
+              <p className="text-2xl font-bold text-teal-400">{profile?.level}</p>
+              <p className="text-xs text-slate-400">Қазіргі деңгей</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+            <span className="text-3xl">⚡</span>
+            <div>
+              <p className="text-2xl font-bold text-yellow-400">{profile?.points} XP</p>
+              <p className="text-xs text-slate-400">Жинаған ұпай</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+            <span className="text-3xl">✅</span>
+            <div>
+              <p className="text-2xl font-bold text-emerald-400">{profile?.completed_lessons.length} / 25</p>
+              <p className="text-xs text-slate-400">Өтілген сабақ</p>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Learning Track & Level Roadmap */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Level Tabs */}
-          <div className="flex bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/80">
-            {(['A1', 'A2', 'B1', 'B2'] as const).map((lvl) => (
-              <button
-                key={lvl}
-                onClick={() => setActiveTab(lvl)}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                  activeTab === lvl
-                    ? 'bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Деңгей {lvl}
-              </button>
-            ))}
+        {/* Блок "Күндізгі жоспар" (Daily Goal) */}
+        <div className="bg-gradient-to-r from-teal-900/40 to-slate-900 border border-teal-500/30 rounded-2xl p-6 mb-8">
+          <h3 className="text-lg font-bold text-teal-300 mb-2">📅 Бүгінгі оқу жоспары</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span className="text-sm">📖 10 жаңа сөз жаттау</span>
+              <span className="text-xs text-teal-400 font-bold">Орындалды</span>
+            </div>
+            <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span className="text-sm">✍️️ 1 грамматикалық тақырып</span>
+              <span className="text-xs text-amber-400 font-bold">Орындалуда</span>
+            </div>
+            <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span className="text-sm">🎧 5 минут тыңдалым</span>
+              <span className="text-xs text-slate-500 font-bold">Күтуде</span>
+            </div>
           </div>
+        </div>
 
-          {/* Lessons List */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-              <span>📚</span> {activeTab} деңгейінің сабақтары
+        {/* ВКЛАДКА 1: Оқу траекториясы (Learning Path) */}
+        {activeTab === 'path' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span>А1 Деңгейі: Бастауыш</span>
             </h2>
 
-            {activeLessons.map((lesson, idx) => (
-              <div
-                key={lesson.id}
-                className={`p-5 rounded-2xl border transition-all duration-200 ${
-                  lesson.locked
-                    ? 'bg-slate-800/20 border-slate-800 opacity-60'
-                    : lesson.completed
-                    ? 'bg-slate-800/60 border-emerald-500/40 hover:border-emerald-500'
-                    : 'bg-slate-800 border-teal-500/50 shadow-lg shadow-teal-500/5'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                        lesson.completed
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : lesson.locked
-                          ? 'bg-slate-800 text-slate-500 border border-slate-700'
-                          : 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                      }`}
-                    >
-                      {lesson.completed ? '✓' : lesson.locked ? '🔒' : idx + 1}
+            <div className="space-y-4 max-w-3xl">
+              {a1Lessons.map((lesson, idx) => {
+                const isCompleted = profile?.completed_lessons.includes(lesson.id)
+                const isUnlocked = idx === 0 || profile?.completed_lessons.includes(a1Lessons[idx - 1].id)
+
+                return (
+                  <div
+                    key={lesson.id}
+                    className={`p-5 rounded-2xl border transition-all flex items-center justify-between ${
+                      isCompleted
+                        ? 'bg-emerald-950/20 border-emerald-500/40'
+                        : isUnlocked
+                        ? 'bg-slate-900 border-teal-500/50 hover:border-teal-400'
+                        : 'bg-slate-900/40 border-slate-800 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-3xl bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        {lesson.icon}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-lg">{lesson.title}</h4>
+                        <p className="text-xs text-slate-400 mt-1">{lesson.desc}</p>
+                      </div>
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-300 uppercase">
-                          {lesson.type}
+                      {isCompleted ? (
+                        <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
+                          ✓ Өтілді
                         </span>
-                        {lesson.completed && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
-                            Аяқталды
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-100">{lesson.title}</h3>
-                      <p className="text-slate-400 text-sm mt-1">{lesson.subtitle}</p>
+                      ) : isUnlocked ? (
+                        <button
+                          onClick={() => alert(`Сабақты бастау: ${lesson.title}`)}
+                          className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all"
+                        >
+                          Бастау
+                        </button>
+                      ) : (
+                        <span className="px-4 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1">
+                          🔒 Құлыпталған
+                        </span>
+                      )}
                     </div>
                   </div>
-
-                  {!lesson.locked ? (
-                    <Link
-                      href={`/lesson/${lesson.id}`}
-                      className="px-4 py-2 text-xs font-bold rounded-xl bg-teal-400 text-slate-900 hover:bg-teal-300 transition-colors shadow-md"
-                    >
-                      {lesson.completed ? 'Қайталау' : 'Бастау →'}
-                    </Link>
-                  ) : (
-                    <span className="text-xs font-medium text-slate-500 py-2">Жабық</span>
-                  )}
-                </div>
-              </div>
-            ))}
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Column: Daily Plan & Overall Progress */}
-        <div className="space-y-6">
-          
-          {/* Daily Goal / Plan Widget */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700 p-6 rounded-2xl shadow-xl">
-            <h3 className="text-lg font-bold text-slate-100 mb-1 flex items-center gap-2">
-              <span>🎯</span> Бүгінгі оқу жоспары
-            </h3>
-            <p className="text-xs text-slate-400 mb-4">Өз қарқыныңызды сақтау үшін тапсырмаларды орындаңыз</p>
+        {/* ВКЛАДКА 2: Vocabulary */}
+        {activeTab === 'vocab' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">📚 Тақырыптық сөздіктер</h2>
+            <p className="text-slate-400 text-sm mb-6">Флеш-карталар арқылы сөздік қорды кеңейтіңіз</p>
 
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span className="text-slate-300">10 жаңа сөз жаттау</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {['Университет', 'Отбасы мен Достар', 'Тамақ пен Ресторан', 'Саяхат', 'Уақыт мен Ауа райы'].map((topic, i) => (
+                <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-teal-500/40 transition-all">
+                  <div className="text-3xl mb-3">🏷️</div>
+                  <h3 className="font-bold text-lg mb-2">{topic}</h3>
+                  <p className="text-xs text-slate-400 mb-4">20 интерактивті сөз + дыбыс</p>
+                  <button className="w-full py-2.5 bg-slate-800 hover:bg-teal-500/20 hover:text-teal-300 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 transition-all">
+                    Карточкаларды ашу ➔
+                  </button>
                 </div>
-                <span className="text-xs text-emerald-400 font-semibold">+20 XP</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ВКЛАДКА 3: Grammar */}
+        {activeTab === 'grammar' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">✍️ Грамматикалық ережелер</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                <span className="px-3 py-1 bg-teal-500/10 text-teal-400 text-xs font-bold rounded-lg border border-teal-500/20">A1 Деңгей</span>
+                <h3 className="font-bold text-lg mt-3 mb-2">Жіктеу есімдіктері & Тәуелділік жалғау</h3>
+                <p className="text-xs text-slate-400 mb-4">Менің кітабым, сенің қаламың, оның досы...</p>
+                <button className="px-4 py-2 bg-teal-400 text-slate-900 font-bold text-xs rounded-xl">Ережені оқу</button>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <span className="w-4 h-4 rounded-full border border-teal-400 flex items-center justify-center text-[10px] text-teal-400 font-bold">1</span>
-                  <span className="text-slate-200">1 Грамматикалық тақырып</span>
-                </div>
-                <span className="text-xs text-teal-400 font-semibold">+30 XP</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <span className="w-4 h-4 rounded-full border border-slate-600" />
-                  <span className="text-slate-400">5 минут тыңдалым (Listening)</span>
-                </div>
-                <span className="text-xs text-slate-500 font-semibold">+15 XP</span>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20">A2 Деңгей</span>
+                <h3 className="font-bold text-lg mt-3 mb-2">Септіктер жүйесі (7 септік)</h3>
+                <p className="text-xs text-slate-400 mb-4">Атау, iliк, Барыс, Табыс, Жатыс, Шығыс, Көмектес</p>
+                <button className="px-4 py-2 bg-slate-800 text-slate-400 font-bold text-xs rounded-xl">🔒 Ашу үшін А1 аяқтаңыз</button>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Overall Course Progress Widget */}
-          <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-2xl backdrop-blur-sm">
-            <h3 className="text-md font-bold text-slate-200 mb-3">Жалпы прогресс</h3>
-            
-            <div className="flex justify-between text-xs text-slate-400 mb-2">
-              <span>Өтілген сабақтар</span>
-              <span className="font-bold text-teal-400">{completedCount} / {lessons.length}</span>
-            </div>
-
-            <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden mb-4">
-              <div
-                className="bg-gradient-to-r from-teal-400 to-emerald-400 h-3 transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Тамаша нәтиже! Сіз курстың <strong className="text-teal-300">{progressPercent}%</strong> бөлігін аяқтадыңыз.
-            </p>
-          </div>
-
-          {/* Achievements Preview */}
-          <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-2xl backdrop-blur-sm">
-            <h3 className="text-md font-bold text-slate-200 mb-4 flex items-center gap-2">
-              <span>🏅</span> Жетістіктер (Achievements)
-            </h3>
-
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-teal-500/30">
-                <div className="text-2xl mb-1">🚀</div>
-                <div className="text-[10px] font-bold text-teal-300">Алғашқы қадам</div>
+        {/* ВКЛАДКА 4: Achievements */}
+        {activeTab === 'achievements' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">🏆 Сіздің жетістіктеріңіз</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl flex items-center gap-4">
+                <span className="text-4xl">🌟</span>
+                <div>
+                  <h4 className="font-bold">Алғашқы қадам</h4>
+                  <p className="text-xs text-slate-400 mt-1">Алғашқы сабақты аяқтадыңыз</p>
+                </div>
               </div>
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-amber-500/30">
-                <div className="text-2xl mb-1">🔥</div>
-                <div className="text-[10px] font-bold text-amber-300">7 күн тізбек</div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-4 opacity-50">
+                <span className="text-4xl">🔥</span>
+                <div>
+                  <h4 className="font-bold">7 Күндік Стрик</h4>
+                  <p className="text-xs text-slate-400 mt-1">Қатарнан 7 күн оқу</p>
+                </div>
               </div>
-              <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-800 opacity-50">
-                <div className="text-2xl mb-1">🧠</div>
-                <div className="text-[10px] font-bold text-slate-500">Грамматика шебері</div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-4 opacity-50">
+                <span className="text-4xl">📚</span>
+                <div>
+                  <h4 className="font-bold">Сөздік шебері</h4>
+                  <p className="text-xs text-slate-400 mt-1">100 жаңа сөз жаттау</p>
+                </div>
               </div>
             </div>
           </div>
-
-        </div>
+        )}
 
       </main>
     </div>
-  );
+  )
 }
