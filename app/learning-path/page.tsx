@@ -1,4 +1,4 @@
-'use client'
+'use 'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -13,9 +13,20 @@ interface Profile {
   completed_lessons: string[]
 }
 
+const a1Lessons = [
+  { id: 'a1-1', title: '1. Алфавит және дыбыстар', desc: 'Ерекше дыбыстар: Ә, Ғ, Қ, Ң, Ө, Ү, Ұ, І, Һ', icon: '🔤' },
+  { id: 'a1-2', title: '2. Сәлемдесу мен танысу', desc: 'Сәлеметсіз бе! Есіміңіз кім?', icon: '👋' },
+  { id: 'a1-3', title: '3. Сандар мен уақыт', desc: '1-ден 100-ге дейін санау', icon: '🔢' },
+  { id: 'a1-4', title: '4. Жіктеу есімдіктері', desc: 'Мен, сен, ол, біз, сіздер...', icon: '👥' },
+  { id: 'a1-5', title: '5. Отбасы және мүшелері', desc: 'Әке, ана, аға, әпке, қарындас', icon: '🏠' },
+]
+
+const vocabTopics = ['Университет', 'Отбасы мен достар', 'Тамақ пен мейрамхана', 'Саяхат', 'Уақыт пен ауа райы']
+
 export default function LearningPathPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
   const router = useRouter()
 
@@ -32,18 +43,35 @@ export default function LearningPathPage() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (data) {
-        setProfile(data)
-      } else {
         setProfile({
-          username: user.email?.split('@')[0] || 'Оқушы',
-          level: 'A1',
-          streak: 1,
-          points: 50,
-          completed_lessons: ['a1-1']
+          username: data.username || user.email?.split('@')[0] || 'Оқушы',
+          level: data.level ?? 'A1',
+          streak: data.streak ?? 0,
+          points: data.points ?? 0,
+          completed_lessons: data.completed_lessons ?? [],
         })
+      } else {
+        // Жаңа пайдаланушы: нөлден бастаймыз
+        const username = user.email?.split('@')[0] || 'Оқушы'
+        const newProfile = {
+          username,
+          level: 'A1',
+          streak: 0,
+          points: 0,
+          completed_lessons: [] as string[],
+        }
+
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, ...newProfile })
+
+        if (insertError) {
+          setLoadError('Профильді сақтау мүмкін болмады: ' + insertError.message)
+        }
+        setProfile(newProfile)
       }
       setLoading(false)
     }
@@ -64,21 +92,31 @@ export default function LearningPathPage() {
     )
   }
 
-  const a1Lessons = [
-    { id: 'a1-1', title: '1. Алфавит және дыбыстар', desc: 'Ерекше дыбыстар: Ә, Ғ, Қ, Ң, Ө, Ү, Ұ, І, Һ', icon: '🔤' },
-    { id: 'a1-2', title: '2. Сәлемдесу мен танысу', desc: 'Сәлеметсіз бе! Есіміңіз кім?', icon: '👋' },
-    { id: 'a1-3', title: '3. Сандар мен уақыт', desc: '1-ден 100-ге дейін санау', icon: '🔢' },
-    { id: 'a1-4', title: '4. Жіктеу есімдіктері', desc: 'Мен, сен, ол, біз, сіздер...', icon: '👥' },
-    { id: 'a1-5', title: '5. Отбасы және мүшелері', desc: 'Әке, ана, аға, әпке, қарындас', icon: '🏠' },
+  const completed = profile?.completed_lessons ?? []
+  const doneCount = a1Lessons.filter((l) => completed.includes(l.id)).length
+  const percent = Math.round((doneCount / a1Lessons.length) * 100)
+
+  const achievements = [
+    {
+      icon: '🌟',
+      title: 'Алғашқы қадам',
+      desc: 'Алғашқы сабақты аяқтадыңыз',
+      earned: doneCount >= 1,
+    },
+    {
+      icon: '🏅',
+      title: 'А1 деңгейі аяқталды',
+      desc: 'А1 деңгейінің барлық сабағын өттіңіз',
+      earned: doneCount === a1Lessons.length,
+    },
   ]
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col md:flex-row">
-      
-      {/* Sidebar / Навигация */}
+
+      {/* Sidebar */}
       <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between">
         <div>
-          {/* Логотип со ссылкой на Главную */}
           <Link href="/" className="flex items-center space-x-3 mb-6 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ҚҰ
@@ -88,7 +126,6 @@ export default function LearningPathPage() {
             </span>
           </Link>
 
-          {/* Кнопка "Басты бетке оралу" */}
           <Link
             href="/"
             className="w-full mb-6 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
@@ -111,7 +148,7 @@ export default function LearningPathPage() {
                 activeTab === 'vocab' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
               }`}
             >
-              📚 Сөздік & Флеш-карта
+              📚 Сөздік
             </button>
             <button
               onClick={() => setActiveTab('grammar')}
@@ -135,7 +172,7 @@ export default function LearningPathPage() {
         <div className="pt-6 border-t border-slate-800 mt-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-teal-500/20 border border-teal-400 text-teal-300 flex items-center justify-center font-bold">
-              {profile?.username[0].toUpperCase()}
+              {profile?.username?.[0]?.toUpperCase() ?? 'Қ'}
             </div>
             <div>
               <p className="text-sm font-semibold">{profile?.username}</p>
@@ -151,8 +188,14 @@ export default function LearningPathPage() {
         </div>
       </aside>
 
-      {/* Контент кабинета */}
+      {/* Контент */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        {loadError && (
+          <div className="mb-6 p-3 rounded-lg text-sm border bg-red-500/10 border-red-500/30 text-red-400">
+            {loadError}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
             <span className="text-3xl">🔥</span>
@@ -181,7 +224,7 @@ export default function LearningPathPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
             <span className="text-3xl">✅</span>
             <div>
-              <p className="text-2xl font-bold text-emerald-400">{profile?.completed_lessons.length} / 25</p>
+              <p className="text-2xl font-bold text-emerald-400">{doneCount} / {a1Lessons.length}</p>
               <p className="text-xs text-slate-400">Өтілген сабақ</p>
             </div>
           </div>
@@ -189,11 +232,25 @@ export default function LearningPathPage() {
 
         {activeTab === 'path' && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">А1 Деңгейі: Бастауыш</h2>
+            <h2 className="text-2xl font-bold mb-4">А1 деңгейі: Бастауыш</h2>
+
+            <div className="max-w-3xl mb-6">
+              <div className="flex justify-between text-xs text-slate-400 mb-2">
+                <span>Деңгей бойынша прогресс</span>
+                <span className="font-bold text-teal-300">{percent}%</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+
             <div className="space-y-4 max-w-3xl">
               {a1Lessons.map((lesson, idx) => {
-                const isCompleted = profile?.completed_lessons.includes(lesson.id)
-                const isUnlocked = idx === 0 || profile?.completed_lessons.includes(a1Lessons[idx - 1].id)
+                const isCompleted = completed.includes(lesson.id)
+                const isUnlocked = idx === 0 || completed.includes(a1Lessons[idx - 1].id)
 
                 return (
                   <div
@@ -202,7 +259,7 @@ export default function LearningPathPage() {
                       isCompleted
                         ? 'bg-emerald-950/20 border-emerald-500/40'
                         : isUnlocked
-                        ? 'bg-slate-900 border-teal-500/50 hover:border-teal-400'
+                        ? 'bg-slate-900 border-teal-500/50'
                         : 'bg-slate-900/40 border-slate-800 opacity-60'
                     }`}
                   >
@@ -222,12 +279,9 @@ export default function LearningPathPage() {
                           ✓ Өтілді
                         </span>
                       ) : isUnlocked ? (
-                        <button
-                          onClick={() => alert(`Сабақты бастау: ${lesson.title}`)}
-                          className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all"
-                        >
-                          Бастау
-                        </button>
+                        <span className="px-4 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
+                          Сабақ жақында ашылады
+                        </span>
                       ) : (
                         <span className="px-4 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold">
                           🔒 Құлыпталған
@@ -244,15 +298,13 @@ export default function LearningPathPage() {
         {activeTab === 'vocab' && (
           <div>
             <h2 className="text-2xl font-bold mb-4">📚 Тақырыптық сөздіктер</h2>
+            <p className="text-sm text-slate-400 mb-6">Сөздік карточкалары жақында қосылады.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {['Университет', 'Отбасы мен Достар', 'Тамақ пен Ресторан', 'Саяхат', 'Уақыт мен Ауа райы'].map((topic, i) => (
-                <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-teal-500/40 transition-all">
+              {vocabTopics.map((topic) => (
+                <div key={topic} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl opacity-80">
                   <div className="text-3xl mb-3">🏷️</div>
                   <h3 className="font-bold text-lg mb-2">{topic}</h3>
-                  <p className="text-xs text-slate-400 mb-4">20 интерактивті сөз + дыбыс</p>
-                  <button className="w-full py-2.5 bg-slate-800 hover:bg-teal-500/20 hover:text-teal-300 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 transition-all">
-                    Карточкаларды ашу ➔
-                  </button>
+                  <p className="text-xs text-slate-500">Жақында</p>
                 </div>
               ))}
             </div>
@@ -262,12 +314,12 @@ export default function LearningPathPage() {
         {activeTab === 'grammar' && (
           <div>
             <h2 className="text-2xl font-bold mb-4">✍️ Грамматикалық ережелер</h2>
+            <p className="text-sm text-slate-400 mb-6">Грамматика бөлімі жақында қосылады.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <span className="px-3 py-1 bg-teal-500/10 text-teal-400 text-xs font-bold rounded-lg border border-teal-500/20">A1 Деңгей</span>
-                <h3 className="font-bold text-lg mt-3 mb-2">Жіктеу есімдіктері & Тәуелділік жалғау</h3>
-                <p className="text-xs text-slate-400 mb-4">Менің кітабым, сенің қаламың, оның досы...</p>
-                <button className="px-4 py-2 bg-teal-400 text-slate-900 font-bold text-xs rounded-xl">Ережені оқу</button>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl opacity-80">
+                <span className="px-3 py-1 bg-teal-500/10 text-teal-400 text-xs font-bold rounded-lg border border-teal-500/20">A1 деңгейі</span>
+                <h3 className="font-bold text-lg mt-3 mb-2">Жіктеу есімдіктері және тәуелдік жалғау</h3>
+                <p className="text-xs text-slate-400">Менің кітабым, сенің қаламың, оның досы...</p>
               </div>
             </div>
           </div>
@@ -277,13 +329,22 @@ export default function LearningPathPage() {
           <div>
             <h2 className="text-2xl font-bold mb-6">🏆 Сіздің жетістіктеріңіз</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl flex items-center gap-4">
-                <span className="text-4xl">🌟</span>
-                <div>
-                  <h4 className="font-bold">Алғашқы қадам</h4>
-                  <p className="text-xs text-slate-400 mt-1">Алғашқы сабақты аяқтадыңыз</p>
+              {achievements.map((a) => (
+                <div
+                  key={a.title}
+                  className={`p-6 rounded-2xl flex items-center gap-4 border ${
+                    a.earned
+                      ? 'bg-slate-900 border-emerald-500/40'
+                      : 'bg-slate-900/40 border-slate-800 opacity-50'
+                  }`}
+                >
+                  <span className="text-4xl">{a.earned ? a.icon : '🔒'}</span>
+                  <div>
+                    <h4 className="font-bold">{a.title}</h4>
+                    <p className="text-xs text-slate-400 mt-1">{a.desc}</p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
