@@ -1,6 +1,28 @@
-import Link from 'next/link';
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 export default function HomePage() {
+  const [user, setUser] = useState<any>(null)
+  const [username, setUsername] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+        // Логинді email-дың алдынан бөліп аламыз
+        const name = user.email?.split('@')[0] || 'Пайдаланушы'
+        setUsername(name)
+      }
+      setLoading(false)
+    }
+    checkUser()
+  }, [])
+
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-teal-500 selection:text-white">
       {/* Header / Navigation */}
@@ -21,19 +43,38 @@ export default function HomePage() {
             <a href="#ai" className="hover:text-teal-400 transition-colors">AI Мүмкіндіктері</a>
           </nav>
 
+          {/* Правая часть шапки: Профиль или Кнопка Входа */}
           <div className="flex items-center space-x-4">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-            >
-              Кіру
-            </Link>
-            <Link
-              href="/assessment"
-              className="px-4 py-2 text-sm font-semibold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 rounded-xl shadow-md transition-all duration-200 hover:scale-[1.02]"
-            >
-              Бастау
-            </Link>
+            {loading ? (
+              <div className="w-20 h-8 bg-slate-800 animate-pulse rounded-xl" />
+            ) : user ? (
+              /* Егер пайдаланушы авторизациядан өткен болса */
+              <Link
+                href="/learning-path"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-teal-500/30 rounded-xl text-sm font-medium text-teal-300 transition-all shadow-md"
+              >
+                <div className="w-6 h-6 rounded-full bg-teal-400 text-slate-900 font-bold flex items-center justify-center text-xs">
+                  {username[0]?.toUpperCase()}
+                </div>
+                <span>Жеке кабинет ({username})</span>
+              </Link>
+            ) : (
+              /* Егер авторизациядан өтпеген болса */
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                >
+                  Кіру
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-semibold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 rounded-xl shadow-md transition-all duration-200 hover:scale-[1.02]"
+                >
+                  Тіркелу
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -56,18 +97,29 @@ export default function HomePage() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/assessment"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 shadow-xl shadow-teal-500/20 transition-all duration-200 transform hover:-translate-y-0.5"
-            >
-              Деңгейді анықтау (A1 - B2)
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-semibold text-slate-200 border border-slate-700 hover:bg-slate-800/60 transition-colors"
-            >
-              Кіру / Тіркелу
-            </Link>
+            {user ? (
+              <Link
+                href="/learning-path"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 shadow-xl shadow-teal-500/20 transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                Оқуды жалғастыру ➔
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/assessment"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 shadow-xl shadow-teal-500/20 transition-all duration-200 transform hover:-translate-y-0.5"
+                >
+                  Деңгейді анықтау (A1 - B2)
+                </Link>
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-semibold text-slate-200 border border-slate-700 hover:bg-slate-800/60 transition-colors"
+                >
+                  Кіру / Тіркелу
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Stats Bar */}
