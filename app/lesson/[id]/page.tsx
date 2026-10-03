@@ -9,6 +9,14 @@ import { lessonContent, type Lesson } from '@/lib/lessons'
 type Stage = 'learn' | 'quiz' | 'result'
 type SaveState = 'idle' | 'saving' | 'saved' | 'already' | 'error'
 
+// Күнді жергілікті уақыт бойынша «ЖЖЖЖ-АА-КК» түрінде береді
+function localDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 export default function LessonPage() {
   const params = useParams()
   const router = useRouter()
@@ -23,6 +31,7 @@ export default function LessonPage() {
   const [score, setScore] = useState(0)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [saveError, setSaveError] = useState('')
+  const [streakAfter, setStreakAfter] = useState<number | null>(null)
 
   useEffect(() => {
     async function checkUser() {
@@ -75,7 +84,7 @@ export default function LessonPage() {
 
     const { data: row, error: readError } = await supabase
       .from('profiles')
-      .select('completed_lessons, points')
+      .select('completed_lessons, points, streak, last_activity_date')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -91,10 +100,28 @@ export default function LessonPage() {
       return
     }
 
+    // Стрикті есептейміз: бүгін бірінші сабақ па, кеше де оқыған ба
+    const today = localDateString(new Date())
+    const yesterdayDate = new Date()
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+    const yesterday = localDateString(yesterdayDate)
+
+    const lastDay: string | null = row?.last_activity_date ?? null
+    let newStreak: number = row?.streak ?? 0
+    if (lastDay === today) {
+      if (newStreak < 1) newStreak = 1
+    } else if (lastDay === yesterday) {
+      newStreak += 1
+    } else {
+      newStreak = 1
+    }
+
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       completed_lessons: [...done, lesson.id],
       points: (row?.points ?? 0) + lesson.xp,
+      streak: newStreak,
+      last_activity_date: today,
     })
 
     if (error) {
@@ -102,6 +129,7 @@ export default function LessonPage() {
       setSaveError(error.message)
       return
     }
+    setStreakAfter(newStreak)
     setSaveState('saved')
   }
 
@@ -148,7 +176,7 @@ export default function LessonPage() {
             <p className="text-slate-400 mb-8">{lesson.intro}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              {lesson.letters.map((letter) => (
+              {(lesson.letters ?? []).map((letter) => (
                 <div key={letter.upper} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                   <div className="flex items-center gap-4 mb-3">
                     <div className="w-16 h-16 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-3xl font-bold text-teal-300">
@@ -167,6 +195,23 @@ export default function LessonPage() {
                 </div>
               ))}
             </div>
+
+            {(lesson.sections ?? []).map((section) => (
+              <div key={section.title} className="mb-8">
+                <h3 className="text-lg font-bold text-teal-300 mb-3">{section.title}</h3>
+                <div className="space-y-2">
+                  {section.items.map((item) => (
+                    <div key={item.kk} className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-3">
+                      <p className="font-bold text-white">{item.kk}</p>
+                      <p className="text-sm text-slate-400">
+                        {item.ru}
+                        {item.note ? ` (${item.note})` : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
 
             <button
               onClick={() => setStage('quiz')}
@@ -249,7 +294,10 @@ export default function LessonPage() {
 
                 {saveState === 'saving' && <p className="text-sm text-slate-400 mb-4">Сақталуда...</p>}
                 {saveState === 'saved' && (
-                  <p className="text-sm text-teal-300 mb-4">Прогресс сақталды. +{lesson.xp} XP қосылды.</p>
+                  <div className="text-sm text-teal-300 mb-4">
+                    <p>Прогресс сақталды. +{lesson.xp} XP қосылды.</p>
+                    {streakAfter !== null && <p className="mt-1">🔥 Стрик: {streakAfter} күн</p>}
+                  </div>
                 )}
                 {saveState === 'already' && (
                   <p className="text-sm text-slate-400 mb-4">

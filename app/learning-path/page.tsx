@@ -22,6 +22,14 @@ const a1Lessons = [
   { id: 'a1-5', title: '5. Отбасы және мүшелері', desc: 'Әке, ана, аға, әпке, қарындас', icon: '🏠' },
 ]
 
+// Күнді жергілікті уақыт бойынша «ЖЖЖЖ-АА-КК» түрінде береді
+function localDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 const vocabTopics = ['Университет', 'Отбасы мен достар', 'Тамақ пен мейрамхана', 'Саяхат', 'Уақыт пен ауа райы']
 
 export default function LearningPathPage() {
@@ -47,10 +55,17 @@ export default function LearningPathPage() {
         .maybeSingle()
 
       if (data) {
+        // Стрик үзілген болса (кеше де, бүгін де оқымаса), 0 көрсетеміз
+        const todayStr = localDateString(new Date())
+        const yesterdayDate = new Date()
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+        const yesterdayStr = localDateString(yesterdayDate)
+        const lastDay: string | null = data.last_activity_date ?? null
+
         setProfile({
           username: data.username || user.email?.split('@')[0] || 'Оқушы',
           level: data.level ?? 'A1',
-          streak: data.streak ?? 0,
+          streak: lastDay === todayStr || lastDay === yesterdayStr ? (data.streak ?? 0) : 0,
           points: data.points ?? 0,
           completed_lessons: data.completed_lessons ?? [],
         })
