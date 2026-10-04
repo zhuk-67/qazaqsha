@@ -40,11 +40,11 @@ export default function HomePage() {
   }, [])
 
   const startHref = username ? '/learning-path' : '/login'
+  const reviewHref = username ? '/review' : '/login'
 
   const comingSoon = [
     { icon: '📚', title: 'Сөздік', desc: 'Тақырыптар бойынша сөздер мен карточкалар.' },
     { icon: '📖', title: 'Грамматика', desc: 'Ережелер қарапайым мысалдармен.' },
-    { icon: '🔁', title: 'Қателер мен қайталау', desc: 'Қателескен сұрақтарды қайта жаттығу.' },
     { icon: '🔊', title: 'Қазақша дыбыстау', desc: 'Сөздер мен сөйлемдердің нақты айтылуы.' },
     { icon: '🤖', title: 'AI көмекші', desc: 'Жазбаша жауаптарды тексеру және қателерді түсіндіру.' },
   ]
@@ -191,6 +191,21 @@ export default function HomePage() {
             <h3 className="font-bold mb-2">Сәлемдесу мен танысу</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Сәлемдесудің және өзін таныстырудың негізгі сөйлемдері.</p>
           </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🔢</p>
+            <h3 className="font-bold mb-2">Сандар мен уақыт</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Сандар, сағат және апта күндері.</p>
+          </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">👥</p>
+            <h3 className="font-bold mb-2">Жіктеу есімдіктері</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Мен, сен, сіз, ол және олардың жалғаулары.</p>
+          </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🏠</p>
+            <h3 className="font-bold mb-2">Отбасы және мүшелері</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Отбасы мүшелерінің аттары және «менің әкем» түріндегі тіркестер.</p>
+          </Link>
           <Link href="/assessment" className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
             <p className="text-3xl mb-3">🎯</p>
             <h3 className="font-bold mb-2">Деңгейді анықтау</h3>
@@ -201,10 +216,15 @@ export default function HomePage() {
             <h3 className="font-bold mb-2">Прогресс пен стрик</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Өтілген сабақтар, ұпай және күн сайынғы оқу тізбегі сақталады.</p>
           </Link>
+          <Link href={reviewHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🔁</p>
+            <h3 className="font-bold mb-2">Қателер мен қайталау</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Қателескен сұрақтар сақталады, оларды қайталап жаттығуға болады.</p>
+          </Link>
         </div>
 
         <h3 className="text-lg font-bold mb-4 text-slate-300">Жақында қосылады</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {comingSoon.map((c) => (
             <div key={c.title} className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-5 opacity-80">
               <p className="text-2xl mb-2">{c.icon}</p>
