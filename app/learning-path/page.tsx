@@ -310,9 +310,19 @@ export default function LearningPathPage() {
 
                     <div>
                       {isCompleted ? (
-                        <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
-                          ✓ Өтілді
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
+                            ✓ Өтілді
+                          </span>
+                          {lessonContent[lesson.id] && (
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 rounded-xl text-xs font-bold transition-all"
+                            >
+                              Қайталау
+                            </Link>
+                          )}
+                        </div>
                       ) : isUnlocked ? (
                         lessonContent[lesson.id] ? (
                           <Link
