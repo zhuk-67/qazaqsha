@@ -32,6 +32,7 @@ export default function LessonPage() {
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [saveError, setSaveError] = useState('')
   const [streakAfter, setStreakAfter] = useState<number | null>(null)
+  const [mistakeSaveFailed, setMistakeSaveFailed] = useState(false)
 
   useEffect(() => {
     async function checkUser() {
@@ -133,10 +134,47 @@ export default function LessonPage() {
     setSaveState('saved')
   }
 
+  // Қателескен сұрақты «Қателер мен қайталау» бөліміне сақтайды
+  async function saveMistake(questionId: string) {
+    if (!lesson) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: existing, error: readError } = await supabase
+      .from('mistakes')
+      .select('wrong_count')
+      .eq('user_id', user.id)
+      .eq('lesson_id', lesson.id)
+      .eq('question_id', questionId)
+      .maybeSingle()
+
+    if (readError) {
+      setMistakeSaveFailed(true)
+      return
+    }
+
+    const { error } = await supabase.from('mistakes').upsert(
+      {
+        user_id: user.id,
+        lesson_id: lesson.id,
+        question_id: questionId,
+        wrong_count: (existing?.wrong_count ?? 0) + 1,
+        correct_streak: 0,
+        last_wrong_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,lesson_id,question_id' }
+    )
+    if (error) setMistakeSaveFailed(true)
+  }
+
   function handleSelect(i: number) {
     if (selected !== null) return
     setSelected(i)
-    if (i === question.answer) setScore((s) => s + 1)
+    if (i === question.answer) {
+      setScore((s) => s + 1)
+    } else {
+      saveMistake(question.id)
+    }
   }
 
   function handleNext() {
@@ -155,6 +193,7 @@ export default function LessonPage() {
     setScore(0)
     setSaveState('idle')
     setSaveError('')
+    setMistakeSaveFailed(false)
     setStage('quiz')
   }
 
@@ -288,6 +327,12 @@ export default function LessonPage() {
             <p className="text-5xl mb-4">{passed ? '🎉' : '📖'}</p>
             <h2 className="text-2xl font-bold mb-2">Нәтиже: {score} / {total}</h2>
 
+            {mistakeSaveFailed && (
+              <p className="text-xs text-red-400 mb-3">
+                Қателерді «Қателер мен қайталау» бөліміне сақтау мүмкін болмады.
+              </p>
+            )}
+
             {passed ? (
               <div>
                 <p className="text-emerald-300 font-bold mb-4">Құттықтаймыз! Сабақ өтілді.</p>
@@ -343,6 +388,15 @@ export default function LessonPage() {
                   </button>
                 </div>
               </div>
+            )}
+
+            {score < total && !mistakeSaveFailed && (
+              <Link
+                href="/review"
+                className="inline-block mt-5 text-sm text-teal-300 font-bold hover:text-teal-200"
+              >
+                🔁 Қателерді қайталау
+              </Link>
             )}
           </div>
         )}

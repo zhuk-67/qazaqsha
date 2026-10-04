@@ -36,6 +36,7 @@ export default function LearningPathPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [mistakeCount, setMistakeCount] = useState(0)
   const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
   const router = useRouter()
 
@@ -89,6 +90,13 @@ export default function LearningPathPage() {
         }
         setProfile(newProfile)
       }
+      // Қателер санын санаймыз (кесте болмаса, 0 көрсетеміз)
+      const { count } = await supabase
+        .from('mistakes')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+      setMistakeCount(count ?? 0)
+
       setLoading(false)
     }
 
@@ -182,6 +190,17 @@ export default function LearningPathPage() {
             >
               🏆 Жетістіктер
             </button>
+            <Link
+              href="/review"
+              className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-slate-400 hover:bg-slate-800"
+            >
+              🔁 Қателер мен қайталау
+              {mistakeCount > 0 && (
+                <span className="ml-auto px-2 py-0.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-full border border-red-500/30">
+                  {mistakeCount}
+                </span>
+              )}
+            </Link>
           </nav>
         </div>
 
