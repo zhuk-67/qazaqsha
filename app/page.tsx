@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { lessonContent } from '@/lib/lessons'
+import { lessonContent, isChoiceQuestion } from '@/lib/lessons'
 
 // Сандар нақты деректерден есептеледі: жаңа сабақ қосылса, бұл жерде өздігінен жаңарады
 const lessons = Object.values(lessonContent)
@@ -15,7 +15,8 @@ const wordPool: { kk: string; ru: string }[] = lessons.flatMap((l) => [
   ...(l.sections ?? []).flatMap((s) => s.items.map((item) => ({ kk: item.kk, ru: item.ru }))),
 ])
 
-const demoQuestion = lessonContent['a1-1']?.questions[1]
+const demoCandidate = lessonContent['a1-1']?.questions[1]
+const demoQuestion = demoCandidate && isChoiceQuestion(demoCandidate) ? demoCandidate : undefined
 
 export default function HomePage() {
   const [username, setUsername] = useState<string | null>(null)

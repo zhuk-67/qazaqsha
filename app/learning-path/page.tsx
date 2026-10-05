@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { lessonContent } from '@/lib/lessons'
+import VocabTab from '@/components/VocabTab'
+import GrammarTab from '@/components/GrammarTab'
 
 interface Profile {
   username: string
@@ -29,8 +31,6 @@ function localDateString(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-
-const vocabTopics = ['Университет', 'Отбасы мен достар', 'Тамақ пен мейрамхана', 'Саяхат', 'Уақыт пен ауа райы']
 
 export default function LearningPathPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -349,35 +349,9 @@ export default function LearningPathPage() {
           </div>
         )}
 
-        {activeTab === 'vocab' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">📚 Тақырыптық сөздіктер</h2>
-            <p className="text-sm text-slate-400 mb-6">Сөздік карточкалары жақында қосылады.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vocabTopics.map((topic) => (
-                <div key={topic} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl opacity-80">
-                  <div className="text-3xl mb-3">🏷️</div>
-                  <h3 className="font-bold text-lg mb-2">{topic}</h3>
-                  <p className="text-xs text-slate-500">Жақында</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {activeTab === 'vocab' && <VocabTab />}
 
-        {activeTab === 'grammar' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">✍️ Грамматикалық ережелер</h2>
-            <p className="text-sm text-slate-400 mb-6">Грамматика бөлімі жақында қосылады.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl opacity-80">
-                <span className="px-3 py-1 bg-teal-500/10 text-teal-400 text-xs font-bold rounded-lg border border-teal-500/20">A1 деңгейі</span>
-                <h3 className="font-bold text-lg mt-3 mb-2">Жіктеу есімдіктері және тәуелдік жалғау</h3>
-                <p className="text-xs text-slate-400">Менің кітабым, сенің қаламың, оның досы...</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeTab === 'grammar' && <GrammarTab />}
 
         {activeTab === 'achievements' && (
           <div>

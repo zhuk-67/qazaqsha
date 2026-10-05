@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { lessonContent, type Question } from '@/lib/lessons'
+import { shuffle } from '@/lib/helpers'
+import QuestionCard from '@/components/QuestionCard'
 
 interface MistakeRow {
   id: string
@@ -21,24 +23,12 @@ interface MistakeItem extends MistakeRow {
 
 interface Card {
   item: MistakeItem
-  options: { text: string; correct: boolean }[]
 }
 
 type Stage = 'list' | 'practice' | 'done'
 
 const NEED_CORRECT = 2 // тізімнен шығу үшін қанша рет дұрыс жауап беру керек
 const SESSION_SIZE = 10 // бір қайталауда ең көбі қанша сұрақ
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const tmp = a[i]
-    a[i] = a[j]
-    a[j] = tmp
-  }
-  return a
-}
 
 export default function ReviewPage() {
   const router = useRouter()
@@ -50,7 +40,7 @@ export default function ReviewPage() {
   const [stage, setStage] = useState<Stage>('list')
   const [cards, setCards] = useState<Card[]>([])
   const [idx, setIdx] = useState(0)
-  const [selected, setSelected] = useState<number | null>(null)
+  const [answered, setAnswered] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [masteredCount, setMasteredCount] = useState(0)
   const [saveWarn, setSaveWarn] = useState(false)
@@ -93,28 +83,19 @@ export default function ReviewPage() {
 
   function startPractice() {
     const picked = shuffle(items).slice(0, SESSION_SIZE)
-    setCards(
-      picked.map((item) => ({
-        item,
-        options: shuffle(
-          item.question.options.map((text, i) => ({ text, correct: i === item.question.answer }))
-        ),
-      }))
-    )
+    setCards(picked.map((item) => ({ item })))
     setIdx(0)
-    setSelected(null)
+    setAnswered(false)
     setCorrectCount(0)
     setMasteredCount(0)
     setSaveWarn(false)
     setStage('practice')
   }
 
-  async function handleSelect(i: number) {
-    if (selected !== null) return
-    setSelected(i)
+  async function handleAnswered(isCorrect: boolean) {
+    setAnswered(true)
 
     const card = cards[idx]
-    const isCorrect = card.options[i].correct
     if (isCorrect) setCorrectCount((c) => c + 1)
 
     let failed = false
@@ -148,7 +129,7 @@ export default function ReviewPage() {
   function handleNext() {
     if (idx + 1 < cards.length) {
       setIdx(idx + 1)
-      setSelected(null)
+      setAnswered(false)
     } else {
       setStage('done')
     }
@@ -248,52 +229,24 @@ export default function ReviewPage() {
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-8">
               <div
                 className="h-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
-                style={{ width: `${((idx + (selected !== null ? 1 : 0)) / cards.length) * 100}%` }}
+                style={{ width: `${((idx + (answered ? 1 : 0)) / cards.length) * 100}%` }}
               />
             </div>
 
-            <h2 className="text-xl font-bold mb-5">{card.item.question.prompt}</h2>
+            <QuestionCard
+              key={card.item.id}
+              question={card.item.question}
+              onAnswered={handleAnswered}
+              shuffleOptions
+            />
 
-            <div className="space-y-3 mb-6">
-              {card.options.map((opt, i) => {
-                let style = 'bg-slate-900 border-slate-700 hover:border-teal-400'
-                if (selected !== null) {
-                  if (opt.correct) style = 'bg-emerald-500/20 border-emerald-400 text-emerald-200'
-                  else if (i === selected) style = 'bg-red-500/20 border-red-400 text-red-200'
-                  else style = 'bg-slate-900 border-slate-800 opacity-50'
-                }
-                return (
-                  <button
-                    key={i}
-                    onClick={() => handleSelect(i)}
-                    disabled={selected !== null}
-                    className={`w-full text-left px-5 py-4 rounded-xl border font-medium transition-all ${style}`}
-                  >
-                    {opt.text}
-                  </button>
-                )
-              })}
-            </div>
-
-            {selected !== null && (
-              <div>
-                <div
-                  className={`mb-4 p-4 rounded-xl text-sm border ${
-                    card.options[selected].correct
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                      : 'bg-red-500/10 border-red-500/30 text-red-300'
-                  }`}
-                >
-                  <p className="font-bold mb-1">{card.options[selected].correct ? 'Дұрыс! ✓' : 'Қате ✗'}</p>
-                  <p>{card.item.question.explain}</p>
-                </div>
-                <button
-                  onClick={handleNext}
-                  className="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl"
-                >
-                  {idx + 1 < cards.length ? 'Келесі ➔' : 'Нәтижені көру'}
-                </button>
-              </div>
+            {answered && (
+              <button
+                onClick={handleNext}
+                className="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl"
+              >
+                {idx + 1 < cards.length ? 'Келесі ➔' : 'Нәтижені көру'}
+              </button>
             )}
           </div>
         )}

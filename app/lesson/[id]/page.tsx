@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { lessonContent, type Lesson } from '@/lib/lessons'
+import QuestionCard from '@/components/QuestionCard'
 
 type Stage = 'learn' | 'quiz' | 'result'
 type SaveState = 'idle' | 'saving' | 'saved' | 'already' | 'error'
@@ -27,7 +28,7 @@ export default function LessonPage() {
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [stage, setStage] = useState<Stage>('learn')
   const [qIndex, setQIndex] = useState(0)
-  const [selected, setSelected] = useState<number | null>(null)
+  const [answered, setAnswered] = useState(false)
   const [score, setScore] = useState(0)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [saveError, setSaveError] = useState('')
@@ -167,11 +168,10 @@ export default function LessonPage() {
     if (error) setMistakeSaveFailed(true)
   }
 
-  function handleSelect(i: number) {
-    if (selected !== null) return
-    setSelected(i)
-    if (i === question.answer) {
-      setScore((s) => s + 1)
+  function handleAnswered(correct: boolean) {
+    setAnswered(true)
+    if (correct) {
+      setScore((sc) => sc + 1)
     } else {
       saveMistake(question.id)
     }
@@ -180,7 +180,7 @@ export default function LessonPage() {
   function handleNext() {
     if (qIndex + 1 < total) {
       setQIndex(qIndex + 1)
-      setSelected(null)
+      setAnswered(false)
     } else {
       setStage('result')
       if (score >= lesson!.passScore) saveProgress()
@@ -189,7 +189,7 @@ export default function LessonPage() {
 
   function restartQuiz() {
     setQIndex(0)
-    setSelected(null)
+    setAnswered(false)
     setScore(0)
     setSaveState('idle')
     setSaveError('')
@@ -271,52 +271,19 @@ export default function LessonPage() {
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-8">
               <div
                 className="h-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
-                style={{ width: `${((qIndex + (selected !== null ? 1 : 0)) / total) * 100}%` }}
+                style={{ width: `${((qIndex + (answered ? 1 : 0)) / total) * 100}%` }}
               />
             </div>
 
-            <h2 className="text-xl font-bold mb-5">{question.prompt}</h2>
+            <QuestionCard key={question.id} question={question} onAnswered={handleAnswered} />
 
-            <div className="space-y-3 mb-6">
-              {question.options.map((opt, i) => {
-                let style = 'bg-slate-900 border-slate-700 hover:border-teal-400'
-                if (selected !== null) {
-                  if (i === question.answer) style = 'bg-emerald-500/20 border-emerald-400 text-emerald-200'
-                  else if (i === selected) style = 'bg-red-500/20 border-red-400 text-red-200'
-                  else style = 'bg-slate-900 border-slate-800 opacity-50'
-                }
-                return (
-                  <button
-                    key={i}
-                    onClick={() => handleSelect(i)}
-                    disabled={selected !== null}
-                    className={`w-full text-left px-5 py-4 rounded-xl border font-medium transition-all ${style}`}
-                  >
-                    {opt}
-                  </button>
-                )
-              })}
-            </div>
-
-            {selected !== null && (
-              <div>
-                <div
-                  className={`mb-4 p-4 rounded-xl text-sm border ${
-                    selected === question.answer
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                      : 'bg-red-500/10 border-red-500/30 text-red-300'
-                  }`}
-                >
-                  <p className="font-bold mb-1">{selected === question.answer ? 'Дұрыс! ✓' : 'Қате ✗'}</p>
-                  <p>{question.explain}</p>
-                </div>
-                <button
-                  onClick={handleNext}
-                  className="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl"
-                >
-                  {qIndex + 1 < total ? 'Келесі ➔' : 'Нәтижені көру'}
-                </button>
-              </div>
+            {answered && (
+              <button
+                onClick={handleNext}
+                className="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl"
+              >
+                {qIndex + 1 < total ? 'Келесі ➔' : 'Нәтижені көру'}
+              </button>
             )}
           </div>
         )}

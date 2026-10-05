@@ -21,12 +21,36 @@ export interface Section {
   items: PhraseItem[]
 }
 
-export interface Question {
+interface BaseQuestion {
   id: string
   prompt: string
+  explain: string
+}
+
+// Таңдау сұрағы (type жазылмаса, таңдау сұрағы болып саналады)
+export interface ChoiceQuestion extends BaseQuestion {
+  type?: 'choice'
   options: string[]
   answer: number // options массивіндегі дұрыс жауаптың нөмірі (0-ден басталады)
-  explain: string
+}
+
+// Сөзді өзі жазатын сұрақ
+export interface WriteQuestion extends BaseQuestion {
+  type: 'write'
+  accepted: string[] // қабылданатын дұрыс жауаптар
+  hint?: string
+}
+
+// Жұптарды сәйкестендіру
+export interface MatchQuestion extends BaseQuestion {
+  type: 'match'
+  pairs: { left: string; right: string }[]
+}
+
+export type Question = ChoiceQuestion | WriteQuestion | MatchQuestion
+
+export function isChoiceQuestion(q: Question): q is ChoiceQuestion {
+  return q.type === undefined || q.type === 'choice'
 }
 
 export interface Lesson {
@@ -46,7 +70,7 @@ export const lessonContent: Record<string, Lesson> = {
     title: 'Алфавит және дыбыстар',
     intro:
       'Қазақ алфавитінде 42 әріп бар. Орыс тілінде жоқ 9 әріп ерекше дыбыстар береді. Осы сабақта сол 9 әріппен танысамыз.',
-    passScore: 6,
+    passScore: 8,
     xp: 20,
     letters: [
       {
@@ -185,6 +209,26 @@ export const lessonContent: Record<string, Lesson> = {
         answer: 0,
         explain: '«ағаш» значит «дерево».',
       },
+      {
+        id: 'q9',
+        type: 'write',
+        prompt: 'Қазақша жазыңыз: «дом»',
+        accepted: ['үй'],
+        hint: 'Екі әріп, бірінші әріп — ү.',
+        explain: '«дом» по-казахски «үй». Буква «ү» не такая же, как «у».',
+      },
+      {
+        id: 'q10',
+        type: 'match',
+        prompt: 'Қазақша сөздерді мағынасымен сәйкестендіріңіз',
+        pairs: [
+          { left: 'әке', right: 'отец' },
+          { left: 'әже', right: 'бабушка' },
+          { left: 'ағаш', right: 'дерево' },
+          { left: 'үй', right: 'дом' },
+        ],
+        explain: 'әке — отец, әже — бабушка, ағаш — дерево, үй — дом.',
+      },
     ],
   },
 
@@ -193,7 +237,7 @@ export const lessonContent: Record<string, Lesson> = {
     title: 'Сәлемдесу мен танысу',
     intro:
       'Бұл сабақта сәлемдесуді және өзіңді таныстыруды үйренеміз. Алдымен сөйлемдерді оқып шығыңыз, содан кейін тестке өтіңіз.',
-    passScore: 6,
+    passScore: 8,
     xp: 20,
     sections: [
       {
@@ -281,6 +325,26 @@ export const lessonContent: Record<string, Lesson> = {
         answer: 0,
         explain: '«Қалыңыз қалай?» значит «Как у вас дела?». Ответ: «Жақсы, рақмет.»',
       },
+      {
+        id: 'q9',
+        type: 'write',
+        prompt: 'Қазақша жазыңыз: «Спасибо!»',
+        accepted: ['рақмет'],
+        hint: 'Алты әріп: р-а-қ-м-е-т, үшінші әріп — қ.',
+        explain: '«Спасибо» по-казахски «Рақмет». В слове есть буква «қ».',
+      },
+      {
+        id: 'q10',
+        type: 'match',
+        prompt: 'Сәлемдесу сөздерін аудармасымен сәйкестендіріңіз',
+        pairs: [
+          { left: 'Сәлем', right: 'Привет' },
+          { left: 'Қайырлы таң', right: 'Доброе утро' },
+          { left: 'Қайырлы кеш', right: 'Добрый вечер' },
+          { left: 'Рақмет', right: 'Спасибо' },
+        ],
+        explain: 'Сәлем — привет, Қайырлы таң — доброе утро, Қайырлы кеш — добрый вечер, Рақмет — спасибо.',
+      },
     ],
   },
 
@@ -289,7 +353,7 @@ export const lessonContent: Record<string, Lesson> = {
     title: 'Сандар мен уақыт',
     intro:
       'Бұл сабақта 1-ден 100-ге дейінгі сандарды, сағатты және апта күндерін үйренеміз. Алдымен материалды оқып шығыңыз, содан кейін тестке өтіңіз.',
-    passScore: 6,
+    passScore: 8,
     xp: 20,
     sections: [
       {
@@ -407,6 +471,26 @@ export const lessonContent: Record<string, Lesson> = {
         answer: 1,
         explain: '«бес жарым» значит «пять с половиной», то есть 5:30.',
       },
+      {
+        id: 'q9',
+        type: 'write',
+        prompt: 'Санды қазақша жазыңыз: 7',
+        accepted: ['жеті'],
+        hint: 'Ж-мен басталады, соңы — і.',
+        explain: '7 по-казахски «жеті».',
+      },
+      {
+        id: 'q10',
+        type: 'match',
+        prompt: 'Күн атауларын аудармасымен сәйкестендіріңіз',
+        pairs: [
+          { left: 'дүйсенбі', right: 'понедельник' },
+          { left: 'сенбі', right: 'суббота' },
+          { left: 'бүгін', right: 'сегодня' },
+          { left: 'ертең', right: 'завтра' },
+        ],
+        explain: 'дүйсенбі — понедельник, сенбі — суббота, бүгін — сегодня, ертең — завтра.',
+      },
     ],
   },
 
@@ -415,7 +499,7 @@ export const lessonContent: Record<string, Lesson> = {
     title: 'Жіктеу есімдіктері',
     intro:
       'Бұл сабақта жіктеу есімдіктерімен, олардың жалғауларымен және «менің, сенің...» түрлерімен танысамыз. Алдымен материалды оқып шығыңыз, содан кейін тестке өтіңіз.',
-    passScore: 6,
+    passScore: 8,
     xp: 20,
     sections: [
       {
@@ -526,6 +610,26 @@ export const lessonContent: Record<string, Lesson> = {
         answer: 3,
         explain: '«біздің» — наш, «кітабымыз» — наша книга. «менің кітабым» — моя книга.',
       },
+      {
+        id: 'q9',
+        type: 'write',
+        prompt: 'Жалғауын қосып жазыңыз: Мен оқушы... (Я ученик.)',
+        accepted: ['оқушымын'],
+        hint: 'Сөз дауысты дыбысқа бітеді, сондықтан жалғау -мын.',
+        explain: 'После гласной к «мен» добавляется -мын: «оқушымын».',
+      },
+      {
+        id: 'q10',
+        type: 'match',
+        prompt: 'Есімдіктерді аудармасымен сәйкестендіріңіз',
+        pairs: [
+          { left: 'мен', right: 'я' },
+          { left: 'сен', right: 'ты' },
+          { left: 'біз', right: 'мы' },
+          { left: 'олар', right: 'они' },
+        ],
+        explain: 'мен — я, сен — ты, біз — мы, олар — они.',
+      },
     ],
   },
 
@@ -534,7 +638,7 @@ export const lessonContent: Record<string, Lesson> = {
     title: 'Отбасы және мүшелері',
     intro:
       'Бұл сабақта отбасы мүшелерінің аттарын және «менің әкем» сияқты тіркестерді үйренеміз. Алдымен материалды оқып шығыңыз, содан кейін тестке өтіңіз.',
-    passScore: 6,
+    passScore: 8,
     xp: 20,
     sections: [
       {
@@ -638,6 +742,26 @@ export const lessonContent: Record<string, Lesson> = {
         options: ['младшая сестра', 'мать', 'бабушка', 'старшая сестра'],
         answer: 3,
         explain: '«әпке» значит «старшая сестра». Младшая сестра — «қарындас» (говорит мальчик) или «сіңілі» (говорит девочка).',
+      },
+      {
+        id: 'q9',
+        type: 'write',
+        prompt: 'Қазақша жазыңыз: «бабушка»',
+        accepted: ['әже'],
+        hint: 'Екі әріп, бірінші әріп — ә.',
+        explain: '«бабушка» по-казахски «әже». Дедушка — «ата».',
+      },
+      {
+        id: 'q10',
+        type: 'match',
+        prompt: 'Отбасы мүшелерін аудармасымен сәйкестендіріңіз',
+        pairs: [
+          { left: 'аға', right: 'старший брат' },
+          { left: 'әпке', right: 'старшая сестра' },
+          { left: 'іні', right: 'младший брат' },
+          { left: 'ата', right: 'дедушка' },
+        ],
+        explain: 'аға — старший брат, әпке — старшая сестра, іні — младший брат, ата — дедушка.',
       },
     ],
   },
