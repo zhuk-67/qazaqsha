@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { shuffle, normalizeAnswer } from '@/lib/helpers'
+import AiExplain, { type AiContext } from '@/components/AiExplain'
 import {
   isChoiceQuestion,
   type ChoiceQuestion,
@@ -18,7 +19,17 @@ interface QuestionCardProps {
 
 const KAZAKH_LETTERS = ['ә', 'ғ', 'қ', 'ң', 'ө', 'ұ', 'ү', 'һ', 'і']
 
-function Feedback({ correct, explain, extra }: { correct: boolean; explain: string; extra?: string }) {
+function Feedback({
+  correct,
+  explain,
+  extra,
+  ai,
+}: {
+  correct: boolean
+  explain: string
+  extra?: string
+  ai?: AiContext
+}) {
   return (
     <div
       className={`mb-4 p-4 rounded-xl text-sm border ${
@@ -30,6 +41,7 @@ function Feedback({ correct, explain, extra }: { correct: boolean; explain: stri
       <p className="font-bold mb-1">{correct ? 'Дұрыс! ✓' : 'Қате ✗'}</p>
       {extra && <p className="mb-1">{extra}</p>}
       <p>{explain}</p>
+      {!correct && ai && <AiExplain ctx={ai} />}
     </div>
   )
 }
@@ -77,7 +89,18 @@ function ChoiceView({
           )
         })}
       </div>
-      {selected !== null && <Feedback correct={selected === question.answer} explain={question.explain} />}
+      {selected !== null && (
+        <Feedback
+          correct={selected === question.answer}
+          explain={question.explain}
+          ai={{
+            question: question.prompt,
+            userAnswer: question.options[selected],
+            correctAnswer: question.options[question.answer],
+            explain: question.explain,
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -192,6 +215,12 @@ function WriteView({
           correct={result}
           explain={question.explain}
           extra={result ? undefined : `Дұрыс жауап: ${question.accepted[0]}`}
+          ai={{
+            question: question.prompt,
+            userAnswer: value,
+            correctAnswer: question.accepted[0],
+            explain: question.explain,
+          }}
         />
       )}
     </div>
@@ -287,6 +316,12 @@ function MatchView({
           correct={!hadMistake}
           explain={question.explain}
           extra={hadMistake ? 'Кейбір жұптарды бірінші рет дұрыс таңдамадыңыз.' : undefined}
+          ai={{
+            question: question.prompt,
+            userAnswer: 'Кейбір жұптарды бірінші рет қате таңдады',
+            correctAnswer: question.pairs.map((p) => `${p.left} = ${p.right}`).join('; '),
+            explain: question.explain,
+          }}
         />
       )}
     </div>
