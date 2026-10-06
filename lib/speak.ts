@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 
 // Қазақша дыбыстау: алдымен браузердегі қазақ дауысы, ол болмаса сервер арқылы Gemini
 
-const CACHE_NAME = 'qq-tts-v1'
+const CACHE_NAME = 'qq-tts-v2'
 const memory = new Map<string, string>() // мәтін -> уақытша аудио сілтемесі
 let currentAudio: HTMLAudioElement | null = null
 
