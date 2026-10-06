@@ -37,7 +37,7 @@ export default function AiExplain({ ctx }: { ctx: AiContext }) {
         },
         body: JSON.stringify(ctx),
       })
-      const data = (await res.json()) as { text?: string; error?: string }
+      const data = (await res.json()) as { text?: string; error?: string; status?: number; detail?: string }
 
       if (res.ok && data.text) {
         setText(data.text)
@@ -45,9 +45,16 @@ export default function AiExplain({ ctx }: { ctx: AiContext }) {
         return
       }
       if (data.error === 'no_key') {
-        setErrorText('ИИ әлі қосылмаған: сервердегі OpenAI кілті табылмады.')
+        setErrorText('ИИ әлі қосылмаған: сервердегі Gemini кілті табылмады.')
       } else if (data.error === 'unauthorized') {
         setErrorText('Жүйеге қайта кіріп көріңіз.')
+      } else if (data.error === 'provider') {
+        let reason = 'Gemini қате қайтарды.'
+        if (data.status === 400) reason = 'Gemini кілті қате немесе сұраныс дұрыс емес.'
+        else if (data.status === 403) reason = 'Gemini кілтіне рұқсат жоқ.'
+        else if (data.status === 404) reason = 'Gemini моделі табылмады.'
+        else if (data.status === 429) reason = 'Тегін лимит бітті. Біраз күтіп, қайта көріңіз.'
+        setErrorText(`${reason} (код ${data.status ?? '?'}${data.detail ? ': ' + data.detail : ''})`)
       } else {
         setErrorText('ИИ жауап бере алмады. Кейінірек қайта көріңіз.')
       }

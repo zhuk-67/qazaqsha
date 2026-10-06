@@ -2,16 +2,19 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 const MAX_LEN = 500
+// Модель можно поменять без кода: переменная GEMINI_MODEL в Vercel
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
 
 function clean(value: unknown): string {
   return typeof value === 'string' ? value.slice(0, MAX_LEN) : ''
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'no_key' }, { status: 503 })
   }
+  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL
 
   // Тек тіркелген қолданушыға рұқсат: кілтіміз бөтендерге жұмсалмауы үшін
   const authHeader = req.headers.get('authorization') ?? ''
@@ -54,32 +57,43 @@ export async function POST(req: Request) {
 
   let res: Response
   try {
-    res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        temperature: 0.3,
-        max_tokens: 300,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-      }),
-    })
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents: [{ role: 'user', parts: [{ text: user }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+        }),
+      }
+    )
   } catch {
     return NextResponse.json({ error: 'network' }, { status: 502 })
   }
 
   if (!res.ok) {
-    return NextResponse.json({ error: 'openai', status: res.status }, { status: 502 })
+    let detail = ''
+    try {
+      const errBody = (await res.json()) as { error?: { message?: string; status?: string } }
+      detail = `${errBody.error?.status ?? ''} ${errBody.error?.message ?? ''}`.trim().slice(0, 200)
+    } catch {
+      // жауап JSON емес болса, детальсіз жібереміз
+    }
+    return NextResponse.json({ error: 'provider', status: res.status, detail }, { status: 502 })
   }
 
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] }
-  const text = data.choices?.[0]?.message?.content?.trim()
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[]
+  }
+  const text = (data.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => p.text ?? '')
+    .join('')
+    .trim()
   if (!text) {
     return NextResponse.json({ error: 'empty' }, { status: 502 })
   }
