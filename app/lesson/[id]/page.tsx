@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { lessonContent, type Lesson } from '@/lib/lessons'
 import QuestionCard from '@/components/QuestionCard'
+import SpeakButton from '@/components/SpeakButton'
 
 type Stage = 'learn' | 'quiz' | 'result'
 type SaveState = 'idle' | 'saving' | 'saved' | 'already' | 'error'
@@ -244,9 +245,12 @@ export default function LessonPage() {
                   </div>
                   <div className="space-y-1">
                     {letter.examples.map((ex) => (
-                      <p key={ex.kk} className="text-sm">
-                        <span className="font-bold text-white">{ex.kk}</span>
-                        <span className="text-slate-400"> — {ex.ru}</span>
+                      <p key={ex.kk} className="text-sm flex items-center gap-2">
+                        <SpeakButton text={ex.kk} />
+                        <span>
+                          <span className="font-bold text-white">{ex.kk}</span>
+                          <span className="text-slate-400"> — {ex.ru}</span>
+                        </span>
                       </p>
                     ))}
                   </div>
@@ -260,7 +264,10 @@ export default function LessonPage() {
                 <div className="space-y-2">
                   {section.items.map((item) => (
                     <div key={item.kk} className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-3">
-                      <p className="font-bold text-white">{item.kk}</p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-bold text-white">{item.kk}</p>
+                        <SpeakButton text={item.kk} />
+                      </div>
                       <p className="text-sm text-slate-400">
                         {item.ru}
                         {item.note ? ` (${item.note})` : ''}

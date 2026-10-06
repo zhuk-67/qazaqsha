@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { lessonContent } from '@/lib/lessons'
 import { shuffle } from '@/lib/helpers'
+import SpeakButton from '@/components/SpeakButton'
 
 interface WordEntry {
   kk: string
@@ -186,7 +187,10 @@ export default function VocabTab() {
                         key={`${w.kk}-${i}`}
                         className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-3"
                       >
-                        <p className="font-bold text-white">{w.kk}</p>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-bold text-white">{w.kk}</p>
+                          <SpeakButton text={w.kk} />
+                        </div>
                         <p className="text-sm text-slate-400">
                           {w.ru}
                           {w.note ? ` (${w.note})` : ''}
@@ -226,6 +230,10 @@ export default function VocabTab() {
                   </div>
                 )}
               </button>
+
+              <div className="mt-3">
+                <SpeakButton text={card.kk} withLabel />
+              </div>
 
               <div className="flex gap-3 mt-4">
                 <button
