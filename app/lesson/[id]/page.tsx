@@ -97,10 +97,7 @@ export default function LessonPage() {
     }
 
     const done: string[] = row?.completed_lessons ?? []
-    if (done.includes(lesson.id)) {
-      setSaveState('already')
-      return
-    }
+    const alreadyDone = done.includes(lesson.id)
 
     // Стрикті есептейміз: бүгін бірінші сабақ па, кеше де оқыған ба
     const today = localDateString(new Date())
@@ -118,10 +115,17 @@ export default function LessonPage() {
       newStreak = 1
     }
 
+    // Сабақ бұрын өтілсе, ұпай қосылмайды, бірақ бүгінгі белсенділік стрикке есептеледі
+    if (alreadyDone && lastDay === today) {
+      setStreakAfter(newStreak)
+      setSaveState('already')
+      return
+    }
+
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
-      completed_lessons: [...done, lesson.id],
-      points: (row?.points ?? 0) + lesson.xp,
+      completed_lessons: alreadyDone ? done : [...done, lesson.id],
+      points: (row?.points ?? 0) + (alreadyDone ? 0 : lesson.xp),
       streak: newStreak,
       last_activity_date: today,
     })
@@ -132,7 +136,7 @@ export default function LessonPage() {
       return
     }
     setStreakAfter(newStreak)
-    setSaveState('saved')
+    setSaveState(alreadyDone ? 'already' : 'saved')
   }
 
   // Қателескен сұрақты «Қателер мен қайталау» бөліміне сақтайды
@@ -312,9 +316,10 @@ export default function LessonPage() {
                   </div>
                 )}
                 {saveState === 'already' && (
-                  <p className="text-sm text-slate-400 mb-4">
-                    Бұл сабақ бұрын өтілген болатын, сондықтан ұпай қайта қосылмайды.
-                  </p>
+                  <div className="text-sm text-slate-400 mb-4">
+                    <p>Бұл сабақ бұрын өтілген болатын, сондықтан ұпай қайта қосылмайды.</p>
+                    {streakAfter !== null && <p className="mt-1 text-teal-300">🔥 Стрик: {streakAfter} күн</p>}
+                  </div>
                 )}
                 {saveState === 'error' && (
                   <div className="mb-4 p-3 rounded-lg text-sm border bg-red-500/10 border-red-500/30 text-red-400">
