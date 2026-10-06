@@ -201,6 +201,12 @@ export default function LearningPathPage() {
                 </span>
               )}
             </Link>
+            <Link
+              href="/check"
+              className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-slate-400 hover:bg-slate-800"
+            >
+              ✍️ Мәтінді тексеру
+            </Link>
           </nav>
         </div>
 
