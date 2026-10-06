@@ -172,6 +172,20 @@ export default function LessonPage() {
     if (error) setMistakeSaveFailed(true)
   }
 
+  // Тест нәтижесін статистика үшін сақтайды (кесте болмаса, сабаққа кедергі келтірмейді)
+  async function saveAttempt(finalScore: number) {
+    if (!lesson) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('lesson_attempts').insert({
+      user_id: user.id,
+      lesson_id: lesson.id,
+      score: finalScore,
+      total: lesson.questions.length,
+      passed: finalScore >= lesson.passScore,
+    })
+  }
+
   function handleAnswered(correct: boolean) {
     setAnswered(true)
     if (correct) {
@@ -187,6 +201,7 @@ export default function LessonPage() {
       setAnswered(false)
     } else {
       setStage('result')
+      saveAttempt(score)
       if (score >= lesson!.passScore) saveProgress()
     }
   }

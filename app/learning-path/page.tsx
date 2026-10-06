@@ -24,6 +24,19 @@ const a1Lessons = [
   { id: 'a1-5', title: '5. Отбасы және мүшелері', desc: 'Әке, ана, аға, әпке, қарындас', icon: '🏠' },
 ]
 
+const a2Lessons = [
+  { id: 'a2-1', title: '1. Тамақ және сусындар', desc: 'Нан, шай, сүт және мейрамханада тапсырыс', icon: '🍽️' },
+  { id: 'a2-2', title: '2. Қала және бағыт', desc: 'Дүкен қайда? Оңға бұрылыңыз', icon: '🏙️' },
+  { id: 'a2-3', title: '3. Күнделікті өмір', desc: 'Оқимын, жазамын, келемін: осы шақ', icon: '⏰' },
+  { id: 'a2-4', title: '4. Өткен шақ', desc: 'Бардым, келдім, жаздым', icon: '⏪' },
+  { id: 'a2-5', title: '5. Сын есім және түстер', desc: 'Үлкен, жаңа, қызыл, көк', icon: '🎨' },
+]
+
+const levels = [
+  { id: 'A1', title: 'А1 деңгейі: Бастауыш', lessons: a1Lessons },
+  { id: 'A2', title: 'А2 деңгейі: Негізгі', lessons: a2Lessons },
+]
+
 // Күнді жергілікті уақыт бойынша «ЖЖЖЖ-АА-КК» түрінде береді
 function localDateString(d: Date): string {
   const y = d.getFullYear()
@@ -37,6 +50,7 @@ export default function LearningPathPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [mistakeCount, setMistakeCount] = useState(0)
+  const [hasPerfectTest, setHasPerfectTest] = useState(false)
   const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
   const router = useRouter()
 
@@ -97,6 +111,16 @@ export default function LearningPathPage() {
         .eq('user_id', user.id)
       setMistakeCount(count ?? 0)
 
+      // Мінсіз тест болды ма (кесте болмаса, жай өткізіп жібереміз)
+      const { data: attempts } = await supabase
+        .from('lesson_attempts')
+        .select('score, total')
+        .eq('user_id', user.id)
+        .limit(1000)
+      setHasPerfectTest(
+        ((attempts ?? []) as { score: number; total: number }[]).some((a) => a.total > 0 && a.score === a.total)
+      )
+
       setLoading(false)
     }
 
@@ -117,22 +141,26 @@ export default function LearningPathPage() {
   }
 
   const completed = profile?.completed_lessons ?? []
-  const doneCount = a1Lessons.filter((l) => completed.includes(l.id)).length
-  const percent = Math.round((doneCount / a1Lessons.length) * 100)
+  const allLessons = [...a1Lessons, ...a2Lessons]
+  const doneCount = allLessons.filter((l) => completed.includes(l.id)).length
+  const a1Done = a1Lessons.filter((l) => completed.includes(l.id)).length
+  const a2Done = a2Lessons.filter((l) => completed.includes(l.id)).length
+  const a1Finished = a1Done === a1Lessons.length
+  const a2Finished = a2Done === a2Lessons.length
+  // Қазіргі деңгей: А1 аяқталса, А2 көрсетіледі
+  const currentLevel = a1Finished ? 'A2' : 'A1'
+  const streak = profile?.streak ?? 0
+  const points = profile?.points ?? 0
 
   const achievements = [
-    {
-      icon: '🌟',
-      title: 'Алғашқы қадам',
-      desc: 'Алғашқы сабақты аяқтадыңыз',
-      earned: doneCount >= 1,
-    },
-    {
-      icon: '🏅',
-      title: 'А1 деңгейі аяқталды',
-      desc: 'А1 деңгейінің барлық сабағын өттіңіз',
-      earned: doneCount === a1Lessons.length,
-    },
+    { icon: '🌟', title: 'Алғашқы қадам', desc: 'Алғашқы сабақты аяқтадыңыз', earned: doneCount >= 1 },
+    { icon: '📚', title: 'Бес сабақ', desc: 'Бес сабақты өттіңіз', earned: doneCount >= 5 },
+    { icon: '🏅', title: 'А1 деңгейі аяқталды', desc: 'А1 деңгейінің барлық сабағын өттіңіз', earned: a1Finished },
+    { icon: '🎓', title: 'А2 деңгейі аяқталды', desc: 'А2 деңгейінің барлық сабағын өттіңіз', earned: a2Finished },
+    { icon: '💯', title: 'Мінсіз тест', desc: 'Тестті бірде-бір қатесіз тапсырдыңыз', earned: hasPerfectTest },
+    { icon: '⚡', title: '100 XP', desc: '100 ұпай жинадыңыз', earned: points >= 100 },
+    { icon: '🔥', title: '3 күн қатарынан', desc: 'Үш күн қатарынан оқыдыңыз', earned: streak >= 3 },
+    { icon: '🚀', title: '7 күн қатарынан', desc: 'Жеті күн қатарынан оқыдыңыз', earned: streak >= 7 },
   ]
 
   return (
@@ -202,6 +230,12 @@ export default function LearningPathPage() {
               )}
             </Link>
             <Link
+              href="/stats"
+              className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-slate-400 hover:bg-slate-800"
+            >
+              📊 Статистика
+            </Link>
+            <Link
               href="/check"
               className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-slate-400 hover:bg-slate-800"
             >
@@ -217,7 +251,7 @@ export default function LearningPathPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">{profile?.username}</p>
-              <p className="text-xs text-slate-400">Деңгей: {profile?.level}</p>
+              <p className="text-xs text-slate-400">Деңгей: {currentLevel}</p>
             </div>
           </div>
           <button
@@ -249,7 +283,7 @@ export default function LearningPathPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
             <span className="text-3xl">🎯</span>
             <div>
-              <p className="text-2xl font-bold text-teal-400">{profile?.level}</p>
+              <p className="text-2xl font-bold text-teal-400">{currentLevel}</p>
               <p className="text-xs text-slate-400">Қазіргі деңгей</p>
             </div>
           </div>
@@ -265,7 +299,7 @@ export default function LearningPathPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
             <span className="text-3xl">✅</span>
             <div>
-              <p className="text-2xl font-bold text-emerald-400">{doneCount} / {a1Lessons.length}</p>
+              <p className="text-2xl font-bold text-emerald-400">{doneCount} / {allLessons.length}</p>
               <p className="text-xs text-slate-400">Өтілген сабақ</p>
             </div>
           </div>
@@ -273,85 +307,103 @@ export default function LearningPathPage() {
 
         {activeTab === 'path' && (
           <div>
-            <h2 className="text-2xl font-bold mb-4">А1 деңгейі: Бастауыш</h2>
+            {levels.map((level, levelIdx) => {
+              const levelDone = level.lessons.filter((l) => completed.includes(l.id)).length
+              const levelPercent = Math.round((levelDone / level.lessons.length) * 100)
+              const prevLevelFinished =
+                levelIdx === 0 || levels[levelIdx - 1].lessons.every((l) => completed.includes(l.id))
 
-            <div className="max-w-3xl mb-6">
-              <div className="flex justify-between text-xs text-slate-400 mb-2">
-                <span>Деңгей бойынша прогресс</span>
-                <span className="font-bold text-teal-300">{percent}%</span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
-            </div>
+              return (
+                <div key={level.id} className="mb-12">
+                  <h2 className="text-2xl font-bold mb-4">{level.title}</h2>
 
-            <div className="space-y-4 max-w-3xl">
-              {a1Lessons.map((lesson, idx) => {
-                const isCompleted = completed.includes(lesson.id)
-                const isUnlocked = idx === 0 || completed.includes(a1Lessons[idx - 1].id)
+                  {!prevLevelFinished && (
+                    <p className="text-sm text-slate-400 mb-4 max-w-3xl">
+                      Бұл деңгей алдыңғы деңгейдің барлық сабағын өткеннен кейін ашылады.
+                    </p>
+                  )}
 
-                return (
-                  <div
-                    key={lesson.id}
-                    className={`p-5 rounded-2xl border transition-all flex items-center justify-between ${
-                      isCompleted
-                        ? 'bg-emerald-950/20 border-emerald-500/40'
-                        : isUnlocked
-                        ? 'bg-slate-900 border-teal-500/50'
-                        : 'bg-slate-900/40 border-slate-800 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-3xl bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        {lesson.icon}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-lg">{lesson.title}</h4>
-                        <p className="text-xs text-slate-400 mt-1">{lesson.desc}</p>
-                      </div>
+                  <div className="max-w-3xl mb-6">
+                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                      <span>Деңгей бойынша прогресс</span>
+                      <span className="font-bold text-teal-300">{levelPercent}%</span>
                     </div>
-
-                    <div>
-                      {isCompleted ? (
-                        <div className="flex items-center gap-2">
-                          <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
-                            ✓ Өтілді
-                          </span>
-                          {lessonContent[lesson.id] && (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 rounded-xl text-xs font-bold transition-all"
-                            >
-                              Қайталау
-                            </Link>
-                          )}
-                        </div>
-                      ) : isUnlocked ? (
-                        lessonContent[lesson.id] ? (
-                          <Link
-                            href={`/lesson/${lesson.id}`}
-                            className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all inline-block"
-                          >
-                            Бастау
-                          </Link>
-                        ) : (
-                          <span className="px-4 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
-                            Сабақ жақында ашылады
-                          </span>
-                        )
-                      ) : (
-                        <span className="px-4 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold">
-                          🔒 Құлыпталған
-                        </span>
-                      )}
+                    <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
+                        style={{ width: `${levelPercent}%` }}
+                      />
                     </div>
                   </div>
-                )
-              })}
-            </div>
+
+                  <div className="space-y-4 max-w-3xl">
+                    {level.lessons.map((lesson, idx) => {
+                      const isCompleted = completed.includes(lesson.id)
+                      const isUnlocked =
+                        prevLevelFinished && (idx === 0 || completed.includes(level.lessons[idx - 1].id))
+
+                      return (
+                        <div
+                          key={lesson.id}
+                          className={`p-5 rounded-2xl border transition-all flex items-center justify-between ${
+                            isCompleted
+                              ? 'bg-emerald-950/20 border-emerald-500/40'
+                              : isUnlocked
+                              ? 'bg-slate-900 border-teal-500/50'
+                              : 'bg-slate-900/40 border-slate-800 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="text-3xl bg-slate-800 p-3 rounded-xl border border-slate-700">
+                              {lesson.icon}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-lg">{lesson.title}</h4>
+                              <p className="text-xs text-slate-400 mt-1">{lesson.desc}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            {isCompleted ? (
+                              <div className="flex items-center gap-2">
+                                <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
+                                  ✓ Өтілді
+                                </span>
+                                {lessonContent[lesson.id] && (
+                                  <Link
+                                    href={`/lesson/${lesson.id}`}
+                                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 rounded-xl text-xs font-bold transition-all"
+                                  >
+                                    Қайталау
+                                  </Link>
+                                )}
+                              </div>
+                            ) : isUnlocked ? (
+                              lessonContent[lesson.id] ? (
+                                <Link
+                                  href={`/lesson/${lesson.id}`}
+                                  className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all inline-block"
+                                >
+                                  Бастау
+                                </Link>
+                              ) : (
+                                <span className="px-4 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
+                                  Сабақ жақында ашылады
+                                </span>
+                              )
+                            ) : (
+                              <span className="px-4 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold">
+                                🔒 Құлыпталған
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 

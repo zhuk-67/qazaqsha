@@ -8,6 +8,8 @@ import { lessonContent, isChoiceQuestion } from '@/lib/lessons'
 // Сандар нақты деректерден есептеледі: жаңа сабақ қосылса, бұл жерде өздігінен жаңарады
 const lessons = Object.values(lessonContent)
 const lessonCount = lessons.length
+const a1Count = lessons.filter((l) => l.id.startsWith('a1-')).length
+const a2Count = lessons.filter((l) => l.id.startsWith('a2-')).length
 const questionCount = lessons.reduce((sum, l) => sum + l.questions.length, 0)
 const specialLetterCount = lessons.reduce((sum, l) => sum + (l.letters ?? []).length, 0)
 const wordPool: { kk: string; ru: string }[] = lessons.flatMap((l) => [
@@ -46,9 +48,9 @@ export default function HomePage() {
 
   const comingSoon = [
     { icon: '🔊', title: 'Қазақша дыбыстау', desc: 'Сөздер мен сөйлемдердің нақты айтылуы.' },
-    { icon: '📊', title: 'Толық статистика', desc: 'Қанша сөз үйренгенің мен дұрыс жауаптар пайызы.' },
-    { icon: '🎓', title: 'A2 деңгейі', desc: 'Жаңа сабақтар, көбірек сөз бен грамматика.' },
     { icon: '💬', title: 'ЖИ-тьютор чаты', desc: 'Қазақ тілі туралы сұрақ қойып, жауап алу.' },
+    { icon: '🏆', title: 'B1 деңгейі', desc: 'Күрделі сөйлемдер, пікір білдіру, мәтін оқу.' },
+    { icon: '👤', title: 'Профиль баптаулары', desc: 'Атты, құпия сөзді өзгерту және прогресті тазалау.' },
   ]
 
   return (
@@ -240,6 +242,16 @@ export default function HomePage() {
             <h3 className="font-bold mb-2">Грамматика</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Жалғаулар, көптік жалғау, тәуелдік және сағатты айту ережелері.</p>
           </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🎓</p>
+            <h3 className="font-bold mb-2">А2 деңгейі</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Тамақ, қала, күнделікті өмір, өткен шақ және сипаттау.</p>
+          </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">📊</p>
+            <h3 className="font-bold mb-2">Статистика және жетістіктер</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Тест нәтижелері, дұрыс жауап пайызы, күндер бойынша белсенділік.</p>
+          </Link>
           <Link href={checkHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
             <p className="text-3xl mb-3">🤖</p>
             <h3 className="font-bold mb-2">ЖИ көмекші</h3>
@@ -283,7 +295,7 @@ export default function HomePage() {
       {/* Деңгейлер */}
       <section id="levels" className="max-w-6xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-extrabold mb-2">Өз деңгейіңнен баста</h2>
-        <p className="text-slate-400 mb-8">Қазір А1 деңгейі ашық, қалғандары кейін қосылады.</p>
+        <p className="text-slate-400 mb-8">Қазір А1 және А2 деңгейлері ашық, қалғандары кейін қосылады.</p>
         <div className="grid md:grid-cols-3 gap-5">
           <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
@@ -297,14 +309,21 @@ export default function HomePage() {
               <li>Жіктеу есімдіктері</li>
               <li>Отбасы және оның мүшелері</li>
             </ul>
-            <p className="text-xs text-slate-500">Дайын сабақ: {lessonCount} / 5</p>
+            <p className="text-xs text-slate-500">Дайын сабақ: {a1Count}</p>
           </div>
-          <div className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-6 opacity-80">
+          <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xl font-bold">A2 — Негізгі</h3>
-              <span className="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg border border-slate-700">Жақында</span>
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30">Ашық</span>
             </div>
-            <p className="text-sm text-slate-500">Күнделікті әңгіме, сөйлем құрау, негізгі грамматика.</p>
+            <ul className="text-sm text-slate-400 space-y-1.5 mb-4">
+              <li>Тамақ және сусындар</li>
+              <li>Қала және бағыт</li>
+              <li>Күнделікті өмір</li>
+              <li>Өткен шақ</li>
+              <li>Сын есім және түстер</li>
+            </ul>
+            <p className="text-xs text-slate-500">Дайын сабақ: {a2Count}. Бұл деңгей А1 аяқталғаннан кейін ашылады.</p>
           </div>
           <div className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-6 opacity-80">
             <div className="flex items-center justify-between mb-3">
