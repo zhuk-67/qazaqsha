@@ -51,6 +51,7 @@ export default function LearningPathPage() {
   const [loadError, setLoadError] = useState('')
   const [mistakeCount, setMistakeCount] = useState(0)
   const [hasPerfectTest, setHasPerfectTest] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
   const router = useRouter()
 
@@ -110,6 +111,10 @@ export default function LearningPathPage() {
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
       setMistakeCount(count ?? 0)
+
+      // Әкімші ме (функция болмаса немесе қате шықса, жай жасырын қалады)
+      const { data: adminFlag } = await supabase.rpc('is_admin')
+      setIsAdmin(adminFlag === true)
 
       // Мінсіз тест болды ма (кесте болмаса, жай өткізіп жібереміз)
       const { data: attempts } = await supabase
@@ -241,6 +246,14 @@ export default function LearningPathPage() {
             >
               ✍️ Мәтінді тексеру
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-orange-300 hover:bg-slate-800"
+              >
+                🛠️ Әкімші панелі
+              </Link>
+            )}
           </nav>
         </div>
 
