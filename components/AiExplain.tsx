@@ -45,7 +45,7 @@ export default function AiExplain({ ctx }: { ctx: AiContext }) {
         return
       }
       if (data.error === 'no_key') {
-        setErrorText('ИИ әлі қосылмаған: сервердегі Gemini кілті табылмады.')
+        setErrorText('ЖИ әлі қосылмаған: сервердегі Gemini кілті табылмады.')
       } else if (data.error === 'unauthorized') {
         setErrorText('Жүйеге қайта кіріп көріңіз.')
       } else if (data.error === 'provider') {
@@ -56,7 +56,7 @@ export default function AiExplain({ ctx }: { ctx: AiContext }) {
         else if (data.status === 429) reason = 'Тегін лимит бітті. Біраз күтіп, қайта көріңіз.'
         setErrorText(`${reason} (код ${data.status ?? '?'}${data.detail ? ': ' + data.detail : ''})`)
       } else {
-        setErrorText('ИИ жауап бере алмады. Кейінірек қайта көріңіз.')
+        setErrorText('ЖИ жауап бере алмады. Кейінірек қайта көріңіз.')
       }
       setState('error')
     } catch {
@@ -73,13 +73,13 @@ export default function AiExplain({ ctx }: { ctx: AiContext }) {
           onClick={ask}
           className="px-4 py-2 bg-slate-800 border border-slate-700 hover:border-teal-400 text-teal-300 text-xs font-bold rounded-lg"
         >
-          🤖 ИИ түсіндірсін
+          🤖 ЖИ түсіндірсін
         </button>
       )}
-      {state === 'loading' && <p className="text-xs text-slate-400 animate-pulse">ИИ ойланып жатыр...</p>}
+      {state === 'loading' && <p className="text-xs text-slate-400 animate-pulse">ЖИ ойланып жатыр...</p>}
       {state === 'done' && (
         <div className="p-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
-          <p className="text-xs font-bold text-teal-300 mb-1">🤖 ИИ түсіндірмесі</p>
+          <p className="text-xs font-bold text-teal-300 mb-1">🤖 ЖИ түсіндірмесі</p>
           <p className="text-sm whitespace-pre-line">{text}</p>
         </div>
       )}

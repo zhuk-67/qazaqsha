@@ -42,12 +42,13 @@ export default function HomePage() {
 
   const startHref = username ? '/learning-path' : '/login'
   const reviewHref = username ? '/review' : '/login'
+  const checkHref = username ? '/check' : '/login'
 
   const comingSoon = [
-    { icon: '📚', title: 'Сөздік', desc: 'Тақырыптар бойынша сөздер мен карточкалар.' },
-    { icon: '📖', title: 'Грамматика', desc: 'Ережелер қарапайым мысалдармен.' },
     { icon: '🔊', title: 'Қазақша дыбыстау', desc: 'Сөздер мен сөйлемдердің нақты айтылуы.' },
-    { icon: '🤖', title: 'AI көмекші', desc: 'Жазбаша жауаптарды тексеру және қателерді түсіндіру.' },
+    { icon: '📊', title: 'Толық статистика', desc: 'Қанша сөз үйренгенің мен дұрыс жауаптар пайызы.' },
+    { icon: '🎓', title: 'A2 деңгейі', desc: 'Жаңа сабақтар, көбірек сөз бен грамматика.' },
+    { icon: '💬', title: 'ЖИ-тьютор чаты', desc: 'Қазақ тілі туралы сұрақ қойып, жауап алу.' },
   ]
 
   return (
@@ -67,6 +68,7 @@ export default function HomePage() {
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-slate-300">
             <a href="#features" className="hover:text-teal-300 transition-colors">Мүмкіндіктер</a>
+            <a href="#ai" className="hover:text-teal-300 transition-colors">ЖИ көмекші</a>
             <a href="#how" className="hover:text-teal-300 transition-colors">Қалай жұмыс істейді</a>
             <a href="#levels" className="hover:text-teal-300 transition-colors">Деңгейлер</a>
           </nav>
@@ -103,6 +105,7 @@ export default function HomePage() {
         {menuOpen && (
           <nav className="md:hidden border-t border-slate-800 px-6 py-4 flex flex-col gap-4 text-sm text-slate-300">
             <a href="#features" onClick={() => setMenuOpen(false)}>Мүмкіндіктер</a>
+            <a href="#ai" onClick={() => setMenuOpen(false)}>ЖИ көмекші</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>Қалай жұмыс істейді</a>
             <a href="#levels" onClick={() => setMenuOpen(false)}>Деңгейлер</a>
           </nav>
@@ -222,6 +225,26 @@ export default function HomePage() {
             <h3 className="font-bold mb-2">Қателер мен қайталау</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Қателескен сұрақтар сақталады, оларды қайталап жаттығуға болады.</p>
           </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">✏️</p>
+            <h3 className="font-bold mb-2">Әртүрлі жаттығулар</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Жауап таңдау, сөзді өзің жазу және жұптарды сәйкестендіру.</p>
+          </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">📚</p>
+            <h3 className="font-bold mb-2">Сөздік</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Сабақтардағы барлық сөздер: іздеу және карточкалармен қайталау.</p>
+          </Link>
+          <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">📖</p>
+            <h3 className="font-bold mb-2">Грамматика</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Жалғаулар, көптік жалғау, тәуелдік және сағатты айту ережелері.</p>
+          </Link>
+          <Link href={checkHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🤖</p>
+            <h3 className="font-bold mb-2">ЖИ көмекші</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Қателерді түсіндіреді және өзің жазған қазақша мәтінді тексереді.</p>
+          </Link>
         </div>
 
         <h3 className="text-lg font-bold mb-4 text-slate-300">Жақында қосылады</h3>
@@ -245,7 +268,7 @@ export default function HomePage() {
               { n: '01', t: 'Тіркел', d: 'Логин мен құпия сөз ойлап тап, аккаунт аш.' },
               { n: '02', t: 'Деңгейіңді анықта', d: 'Қысқа тест қай жерден бастауды көрсетеді.' },
               { n: '03', t: 'Сабақты оқы', d: 'Әр сабақта жаңа әріптер, сөздер немесе сөйлемдер бар.' },
-              { n: '04', t: 'Тестті тапсыр', d: 'Сабақты өтіп, ұпай жинап, келесі сабақты аш.' },
+              { n: '04', t: 'Тестті тапсыр', d: 'Сабақты өтіп, ұпай жинап, қателеріңді қайталап, ЖИ-ден көмек ал.' },
             ].map((s) => (
               <div key={s.n} className="relative">
                 <p className="text-5xl font-extrabold text-teal-500/30 mb-2">{s.n}</p>
@@ -358,14 +381,31 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* AI туралы */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      {/* ЖИ көмекші */}
+      <section id="ai" className="max-w-6xl mx-auto px-6 pb-20">
         <div className="bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800 rounded-3xl p-8 md:p-12">
-          <span className="inline-block px-2.5 py-1 mb-4 bg-slate-800 text-slate-300 text-xs font-bold rounded-lg border border-slate-700">Жақында</span>
-          <h2 className="text-2xl md:text-3xl font-extrabold mb-3">🤖 AI көмекші</h2>
-          <p className="text-slate-400 max-w-2xl leading-relaxed">
-            Біз жазбаша жауаптарыңды тексеретін, қателеріңді түсіндіретін және жеке тапсырмалар ұсынатын AI көмекші дайындап жатырмыз. Ол дайын болғанда, осы жерден табасың.
+          <span className="inline-block px-2.5 py-1 mb-4 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30">Жұмыс істейді</span>
+          <h2 className="text-2xl md:text-3xl font-extrabold mb-3">🤖 ЖИ көмекші</h2>
+          <p className="text-slate-400 max-w-2xl leading-relaxed mb-6">
+            Жасанды интеллект оқуда көмектеседі. Ол қатені түсіндіреді, ал сен жазған қазақша мәтінді тексеріп, дұрыс нұсқасын көрсетеді.
           </p>
+          <div className="grid sm:grid-cols-2 gap-4 mb-6 max-w-3xl">
+            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5">
+              <p className="font-bold mb-1">Қатені түсіндіру</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Жаттығуда қателессең, «ЖИ түсіндірсін» батырмасын бас: неге жауап дұрыс емес екенін айтады.</p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5">
+              <p className="font-bold mb-1">Мәтінді тексеру</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Қазақша сөйлем жазасың, ЖИ қателерді түзетіп, ережені қарапайым тілмен түсіндіреді.</p>
+            </div>
+          </div>
+          <Link
+            href={checkHref}
+            className="inline-block px-6 py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl hover:scale-105 transition-all"
+          >
+            Мәтінді тексеру ➔
+          </Link>
+          <p className="text-xs text-slate-500 mt-4">ЖИ қателесуі мүмкін, сондықтан күмәнді жерлерді сөздіктен тексеріп отыр.</p>
         </div>
       </section>
 
@@ -419,6 +459,7 @@ export default function HomePage() {
             <ul className="space-y-2 text-slate-400">
               <li><Link href="/learning-path" className="hover:text-teal-300">Оқу траекториясы</Link></li>
               <li><Link href="/assessment" className="hover:text-teal-300">Деңгейді анықтау</Link></li>
+              <li><Link href={checkHref} className="hover:text-teal-300">Мәтінді тексеру</Link></li>
               <li><Link href="/login" className="hover:text-teal-300">Кіру және тіркелу</Link></li>
             </ul>
           </div>
@@ -426,6 +467,7 @@ export default function HomePage() {
             <p className="font-bold mb-3">Бөлімдер</p>
             <ul className="space-y-2 text-slate-400">
               <li><a href="#features" className="hover:text-teal-300">Мүмкіндіктер</a></li>
+              <li><a href="#ai" className="hover:text-teal-300">ЖИ көмекші</a></li>
               <li><a href="#how" className="hover:text-teal-300">Қалай жұмыс істейді</a></li>
               <li><a href="#levels" className="hover:text-teal-300">Деңгейлер</a></li>
             </ul>

@@ -75,7 +75,7 @@ export default function CheckPage() {
         return
       }
       if (data.error === 'no_key') {
-        setErrorText('ИИ әлі қосылмаған: сервердегі Gemini кілті табылмады.')
+        setErrorText('ЖИ әлі қосылмаған: сервердегі Gemini кілті табылмады.')
       } else if (data.error === 'unauthorized') {
         setErrorText('Жүйеге қайта кіріп көріңіз.')
       } else if (data.error === 'provider') {
@@ -86,7 +86,7 @@ export default function CheckPage() {
         else if (data.status === 429) reason = 'Тегін лимит бітті. Біраз күтіп, қайта көріңіз.'
         setErrorText(`${reason} (код ${data.status ?? '?'}${data.detail ? ': ' + data.detail : ''})`)
       } else {
-        setErrorText('ИИ жауап бере алмады. Кейінірек қайта көріңіз.')
+        setErrorText('ЖИ жауап бере алмады. Кейінірек қайта көріңіз.')
       }
       setState('error')
     } catch {
@@ -115,7 +115,7 @@ export default function CheckPage() {
 
         <h1 className="text-3xl font-extrabold mb-2">✍️ Мәтінді тексеру</h1>
         <p className="text-slate-400 mb-6">
-          Қазақша сөйлем немесе шағын мәтін жазыңыз. ИИ қателерді түзетіп, оларды орыс тілінде түсіндіреді.
+          Қазақша сөйлем немесе шағын мәтін жазыңыз. ЖИ қателерді түзетіп, оларды орыс тілінде түсіндіреді.
         </p>
 
         <textarea
@@ -149,7 +149,7 @@ export default function CheckPage() {
           disabled={value.trim() === '' || state === 'loading'}
           className="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl disabled:opacity-40"
         >
-          {state === 'loading' ? 'ИИ тексеріп жатыр...' : 'Тексеру ➔'}
+          {state === 'loading' ? 'ЖИ тексеріп жатыр...' : 'Тексеру ➔'}
         </button>
 
         {state === 'error' && (
@@ -160,10 +160,10 @@ export default function CheckPage() {
 
         {state === 'done' && (
           <div className="mt-6 p-5 rounded-xl bg-slate-900 border border-slate-700">
-            <p className="text-sm font-bold text-teal-300 mb-2">🤖 ИИ жауабы</p>
+            <p className="text-sm font-bold text-teal-300 mb-2">🤖 ЖИ жауабы</p>
             <p className="whitespace-pre-line text-slate-200">{result}</p>
             <p className="mt-4 text-xs text-slate-500">
-              ИИ қателесуі мүмкін. Күмән болса, мұғалімнен немесе сөздіктен тексеріңіз.
+              ЖИ қателесуі мүмкін. Күмән болса, мұғалімнен немесе сөздіктен тексеріңіз.
             </p>
           </div>
         )}
