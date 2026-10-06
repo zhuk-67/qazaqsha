@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-const DEFAULT_MODEL = 'gemini-3.8-flash'
+const PRIMARY_MODEL = 'gemini-3.5-flash-lite'
+const BACKUP_MODEL = 'gemini-3.8-flash'
 
 interface ChatMessage {
   role: 'user' | 'model'
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY бапталмаған' }, { status: 503 })
   }
-  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL
+  const selectedModel = process.env.GEMINI_MODEL || PRIMARY_MODEL
 
   // Тек тіркелген қолданушыға рұқсат
   const authHeader = req.headers.get('authorization') ?? ''
@@ -68,10 +69,10 @@ export async function POST(req: Request) {
     parts: [{ text: message }],
   })
 
-  let res: Response
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+  // Функция вызова Gemini
+  async function callGemini(modelName: string) {
+    return await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
       {
         method: 'POST',
         headers: {
@@ -81,10 +82,19 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: system }] },
           contents,
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1000 },
+          generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
         }),
       }
     )
+  }
+
+  let res: Response
+  try {
+    res = await callGemini(selectedModel)
+    // Если модель перегружена (503), пробуем резервную
+    if (res.status === 503 && selectedModel !== BACKUP_MODEL) {
+      res = await callGemini(BACKUP_MODEL)
+    }
   } catch {
     return NextResponse.json({ error: 'Серверге қосылу мүмкін болмады (network)' }, { status: 502 })
   }
