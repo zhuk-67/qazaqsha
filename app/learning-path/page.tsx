@@ -197,7 +197,7 @@ export default function LearningPathPage() {
                 activeTab === 'path' ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:bg-slate-800'
               }`}
             >
-              🗺️ Оқу траекториясы
+              🗺️️ Оқу траекториясы
             </button>
             <button
               onClick={() => setActiveTab('vocab')}
@@ -239,6 +239,12 @@ export default function LearningPathPage() {
               className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-slate-400 hover:bg-slate-800"
             >
               📊 Статистика
+            </Link>
+            <Link
+              href="/tutor"
+              className="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-3 text-teal-300 bg-teal-500/5 hover:bg-teal-500/10 border border-teal-500/20"
+            >
+              💬 ЖИ-тьютор
             </Link>
             <Link
               href="/check"
