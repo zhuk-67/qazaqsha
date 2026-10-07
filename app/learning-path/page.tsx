@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { lessonContent } from '@/lib/lessons'
 import VocabTab from '@/components/VocabTab'
 import GrammarTab from '@/components/GrammarTab'
-import { useTheme } from '@/components/ThemeProvider'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface Profile {
   username: string
@@ -38,6 +38,7 @@ const levels = [
   { id: 'A2', title: 'А2 деңгейі: Негізгі', lessons: a2Lessons },
 ]
 
+// Күнді жергілікті уақыт бойынша «ЖЖЖЖ-АА-КК» түрінде береді
 function localDateString(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -53,7 +54,6 @@ export default function LearningPathPage() {
   const [hasPerfectTest, setHasPerfectTest] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [activeTab, setActiveTab] = useState<'path' | 'vocab' | 'grammar' | 'achievements'>('path')
-  const { theme, toggleTheme } = useTheme()
   const router = useRouter()
 
   useEffect(() => {
@@ -72,6 +72,7 @@ export default function LearningPathPage() {
         .maybeSingle()
 
       if (data) {
+        // Стрик үзілген болса (кеше де, бүгін де оқымаса), 0 көрсетеміз
         const todayStr = localDateString(new Date())
         const yesterdayDate = new Date()
         yesterdayDate.setDate(yesterdayDate.getDate() - 1)
@@ -86,6 +87,7 @@ export default function LearningPathPage() {
           completed_lessons: data.completed_lessons ?? [],
         })
       } else {
+        // Жаңа пайдаланушы: нөлден бастаймыз
         const username = user.email?.split('@')[0] || 'Оқушы'
         const newProfile = {
           username,
@@ -104,16 +106,18 @@ export default function LearningPathPage() {
         }
         setProfile(newProfile)
       }
-
+      // Қателер санын санаймыз (кесте болмаса, 0 көрсетеміз)
       const { count } = await supabase
         .from('mistakes')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
       setMistakeCount(count ?? 0)
 
+      // Әкімші ме (функция болмаса немесе қате шықса, жай жасырын қалады)
       const { data: adminFlag } = await supabase.rpc('is_admin')
       setIsAdmin(adminFlag === true)
 
+      // Мінсіз тест болды ма (кесте болмаса, жай өткізіп жібереміз)
       const { data: attempts } = await supabase
         .from('lesson_attempts')
         .select('score, total')
@@ -149,6 +153,7 @@ export default function LearningPathPage() {
   const a2Done = a2Lessons.filter((l) => completed.includes(l.id)).length
   const a1Finished = a1Done === a1Lessons.length
   const a2Finished = a2Done === a2Lessons.length
+  // Қазіргі деңгей: А1 аяқталса, А2 көрсетіледі
   const currentLevel = a1Finished ? 'A2' : 'A1'
   const streak = profile?.streak ?? 0
   const points = profile?.points ?? 0
@@ -165,30 +170,19 @@ export default function LearningPathPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col md:flex-row transition-colors duration-200">
+    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col md:flex-row">
 
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between transition-colors duration-200">
+      <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
-                ҚҰ
-              </div>
-              <span className="font-extrabold text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                QazaqQadam
-              </span>
-            </Link>
-
-            {/* Иконка переключения прямо в кабинете */}
-            <button
-              onClick={toggleTheme}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-sm transition-all"
-              title={theme === 'light' ? 'Түнгі режим' : 'Күндізгі режим'}
-            >
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
-          </div>
+          <Link href="/" className="flex items-center space-x-3 mb-6 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+              ҚҰ
+            </div>
+            <span className="font-extrabold text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              QazaqQadam
+            </span>
+          </Link>
 
           <Link
             href="/"
@@ -274,6 +268,19 @@ export default function LearningPathPage() {
               <p className="text-xs text-slate-400">Деңгей: {currentLevel}</p>
             </div>
           </div>
+          <Link
+            href="/listen"
+            className="w-full mb-2 py-2 flex items-center justify-center text-xs text-teal-300 hover:bg-slate-800 rounded-lg border border-slate-700 transition-all"
+          >
+            🎧 Тыңдап жаз
+          </Link>
+          <div className="mb-2 flex justify-center"><ThemeToggle withLabel /></div>
+          <Link
+            href="/profile"
+            className="w-full mb-2 py-2 flex items-center justify-center text-xs text-teal-300 hover:bg-slate-800 rounded-lg border border-slate-700 transition-all"
+          >
+            ⚙️ Профиль
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg border border-red-500/20 transition-all"

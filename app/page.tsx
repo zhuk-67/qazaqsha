@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { lessonContent, isChoiceQuestion } from '@/lib/lessons'
-import { useTheme } from '@/components/ThemeProvider'
+import ThemeToggle from '@/components/ThemeToggle'
 
 // Сандар нақты деректерден есептеледі: жаңа сабақ қосылса, бұл жерде өздігінен жаңарады
 const lessons = Object.values(lessonContent)
@@ -26,7 +26,6 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [wordOfDay, setWordOfDay] = useState<{ kk: string; ru: string } | null>(null)
   const [demoSelected, setDemoSelected] = useState<number | null>(null)
-  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     async function loadUser() {
@@ -50,16 +49,15 @@ export default function HomePage() {
 
   const comingSoon = [
     { icon: '🔊', title: 'Қазақша дыбыстау', desc: 'Сөздер мен сөйлемдердің нақты айтылуы.' },
-    { icon: '💬', title: 'ЖИ-тьютор чаты', desc: 'Қазақ тілі туралы сұрақ қойып, жауап алу.' },
     { icon: '🏆', title: 'B1 деңгейі', desc: 'Күрделі сөйлемдер, пікір білдіру, мәтін оқу.' },
-    { icon: '👤', title: 'Профиль баптаулары', desc: 'Атты, құпия сөзді өзгерту және прогресті тазалау.' },
+    { icon: '🗣️', title: 'Сөйлеу жаттығуы', desc: 'Дауыспен сөйлеп, айтылуды жаттықтыру.' },
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-slate-950 text-white font-sans">
 
       {/* Жоғарғы мәзір */}
-      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur border-b border-slate-800 transition-colors duration-200">
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-slate-900">
@@ -78,16 +76,7 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            {/* Кнопка переключения темы */}
-            <button
-              onClick={toggleTheme}
-              className="w-10 h-10 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-lg transition-all"
-              title={theme === 'light' ? 'Түнгі режим' : 'Күндізгі режим'}
-              aria-label="Тақырыпты ауыстыру"
-            >
-              {theme === 'light' ? '🌙' : '☀️️'}
-            </button>
-
+            <ThemeToggle />
             {username ? (
               <Link
                 href="/learning-path"
@@ -268,6 +257,11 @@ export default function HomePage() {
             <p className="text-3xl mb-3">🤖</p>
             <h3 className="font-bold mb-2">ЖИ көмекші</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Қателерді түсіндіреді және өзің жазған қазақша мәтінді тексереді.</p>
+          </Link>
+          <Link href={startHref === '/login' ? '/login' : '/listen'} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🎧</p>
+            <h3 className="font-bold mb-2">Тыңдап жаз</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Сөзді тыңдап, дұрыс жазуды үйрен: ә, ғ, қ, ң, ө, ү әріптерін құлағың ажыратады.</p>
           </Link>
         </div>
 
