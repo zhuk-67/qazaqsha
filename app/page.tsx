@@ -527,7 +527,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="border-t border-slate-800 py-5 text-center text-xs text-slate-600">
-          © 2026 QazaqQadam. Қазақ тілін үйренуге арналған білім беру платформасы.
+          © 2026 QAZIR. Қазақ тілін үйренуге арналған білім беру платформасы. Сайтты жасаған: Інжу Әмірбек
         </div>
       </footer>
     </div>
