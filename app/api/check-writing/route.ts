@@ -1,4 +1,4 @@
-// app/api/check-writing/route.ts
+﻿// app/api/check-writing/route.ts
 
 import { NextResponse } from 'next/server';
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     const systemPrompt = `
-Сіз — QazaqQadam платформасының қазақ тілі мұғалімісіз.
+Сіз — QAZIR платформасының қазақ тілі мұғалімісіз.
 Пайдаланушының деңгейі: ${userLevel || 'A1'}.
 Тапсырма: ${taskPrompt || 'Еркін тақырып'}.
 

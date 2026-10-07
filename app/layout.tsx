@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'QazaqQadam — Қазақ тілін үйрену платформасы',
-  description: 'Қазақ тілін нөлден бастап меңгеруге арналған интерактивті курс',
+  title: 'QAZIR — қазақ тілін үйренуге арналған платформа',
+  description: 'QAZIR: қазақ тілін нөлден бастап меңгеруге арналған интерактивті платформа',
 }
 
 export default function RootLayout({
