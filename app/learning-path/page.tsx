@@ -33,9 +33,27 @@ const a2Lessons = [
   { id: 'a2-5', title: '5. Сын есім және түстер', desc: 'Үлкен, жаңа, қызыл, көк', icon: '🎨' },
 ]
 
+const b1Lessons = [
+  { id: 'b1-1', title: '1. Келер шақ және жоспар', desc: 'Ертең барамын, демалмақшымын', icon: '🗓️' },
+  { id: 'b1-2', title: '2. Тәуелдік жалғау', desc: 'Менің кітабым, сенің үйің, біздің мектебіміз', icon: '🔑' },
+  { id: 'b1-3', title: '3. Денсаулық және дәрігер', desc: 'Басым ауырады, дәрігерге бару керек', icon: '🩺' },
+  { id: 'b1-4', title: '4. Мамандықтар мен жұмыс', desc: 'Мен мұғаліммін, ол дәрігер', icon: '💼' },
+  { id: 'b1-5', title: '5. Саяхат және көлік', desc: 'Пойыз, ұшақ, қонақүй, билет', icon: '✈️' },
+]
+
+const b2Lessons = [
+  { id: 'b2-1', title: '1. Шарт және себеп', desc: 'Егер жаңбыр жауса..., себебі..., сондықтан...', icon: '🔀' },
+  { id: 'b2-2', title: '2. Көсемше', desc: 'Оқып, келіп, барып, жазып', icon: '🔗' },
+  { id: 'b2-3', title: '3. Қазақстан мәдениеті', desc: 'Наурыз, домбыра, киіз үй, қонақжайлық', icon: '🏔️' },
+  { id: 'b2-4', title: '4. Табиғат және ауа райы', desc: 'Жаңбыр, қар, жел, жыл мезгілдері', icon: '🌦️' },
+  { id: 'b2-5', title: '5. Салыстыру және пікір', desc: 'Үлкенірек, ең жақсы, менің ойымша', icon: '⚖️' },
+]
+
 const levels = [
   { id: 'A1', title: 'А1 деңгейі: Бастауыш', lessons: a1Lessons },
   { id: 'A2', title: 'А2 деңгейі: Негізгі', lessons: a2Lessons },
+  { id: 'B1', title: 'В1 деңгейі: Орта', lessons: b1Lessons },
+  { id: 'B2', title: 'В2 деңгейі: Орта-жоғары', lessons: b2Lessons },
 ]
 
 // Күнді жергілікті уақыт бойынша «ЖЖЖЖ-АА-КК» түрінде береді
@@ -147,14 +165,18 @@ export default function LearningPathPage() {
   }
 
   const completed = profile?.completed_lessons ?? []
-  const allLessons = [...a1Lessons, ...a2Lessons]
+  const allLessons = [...a1Lessons, ...a2Lessons, ...b1Lessons, ...b2Lessons]
   const doneCount = allLessons.filter((l) => completed.includes(l.id)).length
   const a1Done = a1Lessons.filter((l) => completed.includes(l.id)).length
   const a2Done = a2Lessons.filter((l) => completed.includes(l.id)).length
+  const b1Done = b1Lessons.filter((l) => completed.includes(l.id)).length
+  const b2Done = b2Lessons.filter((l) => completed.includes(l.id)).length
   const a1Finished = a1Done === a1Lessons.length
   const a2Finished = a2Done === a2Lessons.length
-  // Қазіргі деңгей: А1 аяқталса, А2 көрсетіледі
-  const currentLevel = a1Finished ? 'A2' : 'A1'
+  const b1Finished = b1Done === b1Lessons.length
+  const b2Finished = b2Done === b2Lessons.length
+  // Қазіргі деңгей: алдыңғы деңгей аяқталса, келесісі көрсетіледі
+  const currentLevel = !a1Finished ? 'A1' : !a2Finished ? 'A2' : !b1Finished ? 'B1' : 'B2'
   const streak = profile?.streak ?? 0
   const points = profile?.points ?? 0
 
@@ -163,6 +185,8 @@ export default function LearningPathPage() {
     { icon: '📚', title: 'Бес сабақ', desc: 'Бес сабақты өттіңіз', earned: doneCount >= 5 },
     { icon: '🏅', title: 'А1 деңгейі аяқталды', desc: 'А1 деңгейінің барлық сабағын өттіңіз', earned: a1Finished },
     { icon: '🎓', title: 'А2 деңгейі аяқталды', desc: 'А2 деңгейінің барлық сабағын өттіңіз', earned: a2Finished },
+    { icon: '🎖️', title: 'В1 деңгейі аяқталды', desc: 'В1 деңгейінің барлық сабағын өттіңіз', earned: b1Finished },
+    { icon: '👑', title: 'В2 деңгейі аяқталды', desc: 'В2 деңгейінің барлық сабағын өттіңіз', earned: b2Finished },
     { icon: '💯', title: 'Мінсіз тест', desc: 'Тестті бірде-бір қатесіз тапсырдыңыз', earned: hasPerfectTest },
     { icon: '⚡', title: '100 XP', desc: '100 ұпай жинадыңыз', earned: points >= 100 },
     { icon: '🔥', title: '3 күн қатарынан', desc: 'Үш күн қатарынан оқыдыңыз', earned: streak >= 3 },

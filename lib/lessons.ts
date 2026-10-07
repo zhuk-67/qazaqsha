@@ -1,3 +1,5 @@
+import { lessonsB } from './lessons-b'
+
 export interface LetterExample {
   kk: string
   ru: string
@@ -64,7 +66,7 @@ export interface Lesson {
   xp: number
 }
 
-export const lessonContent: Record<string, Lesson> = {
+const baseLessons: Record<string, Lesson> = {
   'a1-1': {
     id: 'a1-1',
     title: 'Алфавит және дыбыстар',
@@ -1430,3 +1432,6 @@ export const lessonContent: Record<string, Lesson> = {
     ],
   },
 }
+
+// А1, А2 сабақтары (жоғарыда) және В1, В2 сабақтары (lessons-b.ts) біріктіріледі
+export const lessonContent: Record<string, Lesson> = { ...baseLessons, ...lessonsB }

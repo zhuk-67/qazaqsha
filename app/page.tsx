@@ -11,6 +11,8 @@ const lessons = Object.values(lessonContent)
 const lessonCount = lessons.length
 const a1Count = lessons.filter((l) => l.id.startsWith('a1-')).length
 const a2Count = lessons.filter((l) => l.id.startsWith('a2-')).length
+const b1Count = lessons.filter((l) => l.id.startsWith('b1-')).length
+const b2Count = lessons.filter((l) => l.id.startsWith('b2-')).length
 const questionCount = lessons.reduce((sum, l) => sum + l.questions.length, 0)
 const specialLetterCount = lessons.reduce((sum, l) => sum + (l.letters ?? []).length, 0)
 const wordPool: { kk: string; ru: string }[] = lessons.flatMap((l) => [
@@ -49,7 +51,7 @@ export default function HomePage() {
 
   const comingSoon = [
     { icon: '🔊', title: 'Қазақша дыбыстау', desc: 'Сөздер мен сөйлемдердің нақты айтылуы.' },
-    { icon: '🏆', title: 'B1 деңгейі', desc: 'Күрделі сөйлемдер, пікір білдіру, мәтін оқу.' },
+    { icon: '🏆', title: 'С1 деңгейі', desc: 'Күрделі мәтіндер, ресми стиль, әдебиет.' },
     { icon: '🗣️', title: 'Сөйлеу жаттығуы', desc: 'Дауыспен сөйлеп, айтылуды жаттықтыру.' },
   ]
 
@@ -245,8 +247,8 @@ export default function HomePage() {
           </Link>
           <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
             <p className="text-3xl mb-3">🎓</p>
-            <h3 className="font-bold mb-2">А2 деңгейі</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">Тамақ, қала, күнделікті өмір, өткен шақ және сипаттау.</p>
+            <h3 className="font-bold mb-2">А2, В1 және В2 деңгейлері</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">Тамақ, қала, өткен және келер шақ, денсаулық, жұмыс, саяхат, шарт райы, көсемше, мәдениет.</p>
           </Link>
           <Link href={startHref} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
             <p className="text-3xl mb-3">📊</p>
@@ -306,8 +308,8 @@ export default function HomePage() {
       {/* Деңгейлер */}
       <section id="levels" className="max-w-6xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-extrabold mb-2">Өз деңгейіңнен баста</h2>
-        <p className="text-slate-400 mb-8">Қазір А1 және А2 деңгейлері ашық, қалғандары кейін қосылады.</p>
-        <div className="grid md:grid-cols-3 gap-5">
+        <p className="text-slate-400 mb-8">А1-ден В2-ге дейін төрт деңгей ашық. Әр деңгей алдыңғысы аяқталғаннан кейін ашылады.</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xl font-bold">A1 — Бастауыш</h3>
@@ -336,12 +338,33 @@ export default function HomePage() {
             </ul>
             <p className="text-xs text-slate-500">Дайын сабақ: {a2Count}. Бұл деңгей А1 аяқталғаннан кейін ашылады.</p>
           </div>
-          <div className="bg-slate-900/50 border border-dashed border-slate-700 rounded-2xl p-6 opacity-80">
+          <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xl font-bold">B1 — Орта</h3>
-              <span className="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg border border-slate-700">Жақында</span>
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30">Ашық</span>
             </div>
-            <p className="text-sm text-slate-500">Күрделі сөйлемдер, пікір білдіру, мәтін оқу.</p>
+            <ul className="text-sm text-slate-400 space-y-1.5 mb-4">
+              <li>Келер шақ және жоспар</li>
+              <li>Тәуелдік жалғау</li>
+              <li>Денсаулық және дәрігер</li>
+              <li>Мамандықтар мен жұмыс</li>
+              <li>Саяхат және көлік</li>
+            </ul>
+            <p className="text-xs text-slate-500">Дайын сабақ: {b1Count}. Бұл деңгей А2 аяқталғаннан кейін ашылады.</p>
+          </div>
+          <div className="bg-slate-900 border border-teal-500/40 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-bold">B2 — Орта-жоғары</h3>
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30">Ашық</span>
+            </div>
+            <ul className="text-sm text-slate-400 space-y-1.5 mb-4">
+              <li>Шарт және себеп</li>
+              <li>Көсемше</li>
+              <li>Қазақстан мәдениеті</li>
+              <li>Табиғат және ауа райы</li>
+              <li>Салыстыру және пікір</li>
+            </ul>
+            <p className="text-xs text-slate-500">Дайын сабақ: {b2Count}. Бұл деңгей В1 аяқталғаннан кейін ашылады.</p>
           </div>
         </div>
         <div className="mt-8">
