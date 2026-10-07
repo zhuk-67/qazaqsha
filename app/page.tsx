@@ -263,6 +263,11 @@ export default function HomePage() {
             <h3 className="font-bold mb-2">Тыңдап жаз</h3>
             <p className="text-xs text-slate-400 leading-relaxed">Сөзді тыңдап, дұрыс жазуды үйрен: ә, ғ, қ, ң, ө, ү әріптерін құлағың ажыратады.</p>
           </Link>
+          <Link href={startHref === '/login' ? '/login' : '/leaderboard'} className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 rounded-2xl p-6 transition-all">
+            <p className="text-3xl mb-3">🏅</p>
+            <h3 className="font-bold mb-2">Рейтинг</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">XP бойынша ең жақсы оқушылар тізімі. Достарыңмен жарыс.</p>
+          </Link>
         </div>
 
         <h3 className="text-lg font-bold mb-4 text-slate-300">Жақында қосылады</h3>
