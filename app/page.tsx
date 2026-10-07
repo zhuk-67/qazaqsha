@@ -124,7 +124,7 @@ export default function HomePage() {
             Қазақ тілін үйренуге арналған платформа
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-5">
-            Өзге тілдің бәрін біл — <span className="bg-gradient-to-r from-teal-300 to-emerald-400 bg-clip-text text-transparent">өз тіліңді құрметте</span>
+            Қазақ тілін үйренудің ең жақсы уақыты — <span className="bg-gradient-to-r from-teal-300 to-emerald-400 bg-clip-text text-transparent">QAZIR</span>
           </h1>
           <p className="text-slate-400 text-lg mb-8 leading-relaxed">
             Алфавиттен бастап күнделікті сөйлесуге дейін: қысқа сабақтар, тесттер және нақты прогресс. Деңгейіңді анықта да, бүгіннен оқуды баста.
