@@ -18,9 +18,11 @@ import {
 import VocabTab from '@/components/VocabTab'
 import GrammarTab from '@/components/GrammarTab'
 import ThemeToggle from '@/components/ThemeToggle'
+import Avatar from '@/components/Avatar'
 
 interface Profile {
   username: string
+  avatar?: string | null
   level: string
   streak: number
   points: number
@@ -250,9 +252,7 @@ export default function LearningPathPage() {
 
         <div className="hidden md:block mt-auto pt-4 border-t border-slate-800">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-teal-500/20 border border-teal-400 text-teal-300 flex items-center justify-center font-bold">
-              {profile?.username?.[0]?.toUpperCase() ?? 'Q'}
-            </div>
+            <Avatar name={profile?.username ?? 'Q'} src={profile?.avatar} className="w-9 h-9 text-base" />
             <div className="min-w-0">
               <p className="text-sm font-semibold truncate">{profile?.username}</p>
               <p className="text-xs text-slate-400">Деңгей: {currentLevel}</p>

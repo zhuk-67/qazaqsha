@@ -7,6 +7,7 @@ import { lessonContent, isChoiceQuestion } from '@/lib/lessons'
 import { levelDefs, doneInLevel, currentLevelId, totalDone, totalLessonCount } from '@/lib/levels'
 import ThemeToggle from '@/components/ThemeToggle'
 import LeaderboardPanel from '@/components/LeaderboardPanel'
+import Avatar from '@/components/Avatar'
 
 const lessons = Object.values(lessonContent)
 const wordPool: { kk: string; ru: string }[] = lessons.flatMap((l) => [
@@ -19,6 +20,7 @@ const demoQuestion = demoCandidate && isChoiceQuestion(demoCandidate) ? demoCand
 
 export default function HomePage() {
   const [username, setUsername] = useState<string | null>(null)
+  const [avatar, setAvatar] = useState<string | null>(null)
   const [completed, setCompleted] = useState<string[]>([])
   const [streak, setStreak] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -36,12 +38,13 @@ export default function HomePage() {
       }
       const { data } = await supabase
         .from('profiles')
-        .select('username, streak, completed_lessons')
+        .select('username, streak, completed_lessons, avatar')
         .eq('id', user.id)
         .maybeSingle()
       setUsername(data?.username || user.email?.split('@')[0] || 'Оқушы')
       setCompleted((data?.completed_lessons as string[] | null) ?? [])
       setStreak(data?.streak ?? 0)
+      setAvatar((data?.avatar as string | null) ?? null)
     }
     loadUser()
   }, [])
@@ -64,8 +67,8 @@ export default function HomePage() {
     { icon: '🧠', title: 'Грамматика', desc: 'Ережелер мен мысалдар', href: go('/learning-path?tab=grammar') },
     { icon: '📖', title: 'Сөздік', desc: 'Сөздер, іздеу, карточкалар', href: go('/learning-path?tab=vocab') },
     { icon: '🔁', title: 'Қателер', desc: 'Қателермен жұмыс', href: go('/review') },
-    { icon: '📝', title: 'Деңгей тесті', desc: 'Деңгейіңді анықта', href: '/assessment' },
     { icon: '🏋️', title: 'Жаттығулар', desc: 'Грамматика бойынша қайталау', href: go('/practice') },
+    { icon: '📝', title: 'Деңгей тесті', desc: 'Деңгейіңді анықта', href: '/assessment' },
     { icon: '📊', title: 'Статистика', desc: 'Нәтижелер мен белсенділік', href: go('/stats') },
   ]
 
@@ -103,9 +106,7 @@ export default function HomePage() {
                 href="/learning-path"
                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm transition-all"
               >
-                <span className="w-7 h-7 rounded-full bg-teal-500/20 border border-teal-400 text-teal-300 flex items-center justify-center text-xs font-bold">
-                  {username?.[0]?.toUpperCase()}
-                </span>
+                <Avatar name={username ?? ''} src={avatar} className="w-7 h-7 text-xs" />
                 <span className="hidden sm:inline font-medium">Менің кабинетім</span>
               </Link>
             ) : (

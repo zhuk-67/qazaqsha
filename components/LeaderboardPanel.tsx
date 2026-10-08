@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Avatar from '@/components/Avatar'
 import { currentLevelId, totalDone, totalLessonCount } from '@/lib/levels'
 
 interface Row {
@@ -10,10 +11,12 @@ interface Row {
   points: number
   streak: number
   completed_lessons: string[] | null
+  avatar?: string | null
 }
 
 interface Me {
   username: string
+  avatar: string | null
   points: number
   completed: string[]
 }
@@ -48,11 +51,12 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, points, completed_lessons')
+        .select('username, points, completed_lessons, avatar')
         .eq('id', user.id)
         .maybeSingle()
       setMe({
         username: profile?.username || user.email?.split('@')[0] || 'Оқушы',
+        avatar: (profile?.avatar as string | null) ?? null,
         points: profile?.points ?? 0,
         completed: (profile?.completed_lessons as string[] | null) ?? [],
       })
@@ -115,9 +119,12 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
             <div className="bg-slate-800/60 border border-teal-500/40 rounded-2xl p-4 mb-5">
               <p className="text-xs text-slate-400 mb-2">Сіздің нәтижеңіз</p>
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-bold truncate">{me.username}</p>
-                  <p className="text-xs text-slate-400">Деңгей: {currentLevelId(me.completed)}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar name={me.username} src={me.avatar} className="w-10 h-10 text-base" />
+                  <div className="min-w-0">
+                    <p className="font-bold truncate">{me.username}</p>
+                    <p className="text-xs text-slate-400">Деңгей: {currentLevelId(me.completed)}</p>
+                  </div>
                 </div>
                 <div className="text-right whitespace-nowrap">
                   <p className="font-bold text-teal-300">{me.points} XP</p>
@@ -153,6 +160,7 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="w-7 text-center font-bold">{i < 3 ? medals[i] : i + 1}</span>
+                        <Avatar name={r.username} src={r.avatar} className="w-8 h-8 text-xs" />
                         <div className="min-w-0">
                           <p className="font-bold text-sm truncate">
                             {r.username}

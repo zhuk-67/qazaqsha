@@ -84,17 +84,15 @@ export default function ProfilePage() {
         router.push('/login')
         return
       }
-      const meta = user.user_metadata as { avatar?: string } | null
-      setAvatar(meta?.avatar ?? null)
-
       const { data: p } = await supabase
         .from('profiles')
-        .select('username, completed_lessons, points, streak, last_activity_date')
+        .select('username, avatar, completed_lessons, points, streak, last_activity_date')
         .eq('id', user.id)
         .maybeSingle()
 
       const fallback = (user.email ?? '').split('@')[0]
       setName((p?.username as string | undefined) || fallback || 'Қолданушы')
+      setAvatar((p?.avatar as string | null | undefined) ?? null)
       if (p) {
         setCompleted(p.completed_lessons ?? [])
         setPoints(p.points ?? 0)
@@ -152,7 +150,9 @@ export default function ProfilePage() {
     setBusy(true)
     try {
       const data = await resizeAvatar(file)
-      const { error: err } = await supabase.auth.updateUser({ data: { avatar: data } })
+      const { data: u } = await supabase.auth.getUser()
+      if (!u.user) throw new Error('Сессия жоқ')
+      const { error: err } = await supabase.from('profiles').update({ avatar: data }).eq('id', u.user.id)
       if (err) throw new Error(err.message)
       setAvatar(data)
       setAvatarMsg('Аватар сақталды.')
@@ -164,7 +164,10 @@ export default function ProfilePage() {
 
   async function removeAvatar() {
     setBusy(true)
-    const { error: err } = await supabase.auth.updateUser({ data: { avatar: null } })
+    const { data: u } = await supabase.auth.getUser()
+    const { error: err } = u.user
+      ? await supabase.from('profiles').update({ avatar: null }).eq('id', u.user.id)
+      : { error: { message: 'Сессия жоқ' } }
     if (err) setAvatarMsg('Аватарды өшіру мүмкін болмады. ' + err.message)
     else {
       setAvatar(null)
