@@ -1,309 +1,510 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useMemo, useState, type ReactNode } from 'react'
+import Link from 'next/link'
+import SpeakButton from '@/components/SpeakButton'
+import { shuffle } from '@/lib/helpers'
+import {
+  placementTasks,
+  PLACEMENT_LEVELS,
+  type Level,
+  type PlacementTask,
+} from '@/lib/placement'
 
-interface Question {
-  id: number;
-  level: 'A1' | 'A2' | 'B1' | 'B2';
-  category: 'Грамматика' | 'Лексика' | 'Мәтін мен контекст';
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
+// Жауап түрлері: choice/listen/fill — мәтін, tf — 'true' | 'false', error — индекс, order — сөздер тізімі, match — оң жақ мәндер тізімі
+type Answer = string | number | string[] | null
+
+const LEVEL_NAMES: Record<Level, string> = {
+  A1: 'A1: Бастауыш',
+  A2: 'A2: Негізгі',
+  B1: 'B1: Орта',
+  B2: 'B2: Орташа-жоғары',
+  C1: 'C1: Жоғары',
 }
 
-const assessmentQuestions: Question[] = [
-  // A1 Level
-  {
-    id: 1,
-    level: 'A1',
-    category: 'Грамматика',
-    question: '«Сәлеметсіз бе! Менің атым — Аружан. Мен студент...» Сөйлемді тиісті жіктеу жалғауымен толықтырыңыз:',
-    options: ['-пін', '-мін', '-бін', '-сіз'],
-    correctAnswer: 0,
-    explanation: '«Студент» сөзі глухой (қатаң) «т» дыбысына аяқталғандықтан, I жақтың жіктеу жалғауы «-пін» болады (мен студентпін).'
-  },
-  {
-    id: 2,
-    level: 'A1',
-    category: 'Лексика',
-    question: '«Отбасы» сөзінің орыс тіліндегі баламасы қандай?',
-    options: ['Друзья', 'Семья', 'Работа', 'Университет'],
-    correctAnswer: 1,
-    explanation: '«Отбасы» сөзі қазақ тілінен аударғанда «Семья» деген ұғымды білдіреді.'
-  },
-  // A2 Level
-  {
-    id: 3,
-    level: 'A2',
-    category: 'Грамматика',
-    question: '«Кеше біз мұражайға ...» Сөйлемдегі жедел өткен шақ етістігінің дұрыс нұсқасын табыңыз:',
-    options: ['барамыз', 'бардық', 'барып жатырмыз', 'бармақшымыз'],
-    correctAnswer: 1,
-    explanation: '«Кеше» үстеуі өтіп кеткен уақытты білдіреді. Жіктелген жедел өткен шақ формасы: «бар-ды-қ».'
-  },
-  {
-    id: 4,
-    level: 'A2',
-    category: 'Грамматика',
-    question: 'Барыс септігінің дұрыс жалғауын таңдаңыз: «Астана... барамын»',
-    options: ['-ға', '-да', '-дан', '-ны'],
-    correctAnswer: 0,
-    explanation: '«Астана» сөзі жуан дауыстыға аяқталғандықтан, барыс септігінің (Қайда?) «-ға» жалғауы жалғанады.'
-  },
-  // B1 Level
-  {
-    id: 5,
-    level: 'B1',
-    category: 'Грамматика',
-    question: '«Егер ертең ауа райы жақсы болса, біз тауға ...» Сөйлемді мағынасы бойынша аяқтаңыз:',
-    options: ['барамыз', 'барғанбыз', 'бармақ едік', 'бармадық'],
-    correctAnswer: 0,
-    explanation: 'Шартты рай басыңқы сөйлемдегі іс-әрекеттің орындалу мүмкіндігін білдіреді («болса..., барамыз»).'
-  },
-  {
-    id: 6,
-    level: 'B1',
-    category: 'Мәтін мен контекст',
-    question: 'Себеп-салдарлық қатынасты білдіретін шылауды табыңыз:',
-    options: ['Сондықтан', 'Бірақ', 'Яғни', 'Мисалға'],
-    correctAnswer: 0,
-    explanation: '«Сондықтан» — себеп-салдар салалас құрмалас сөйлемді байланыстыратын септеулік шылау.'
-  },
-  // B2 Level
-  {
-    id: 7,
-    level: 'B2',
-    category: 'Грамматика',
-    question: '«Іс-шараның жоғары деңгейде өтуіне байланысты ұйымдастырушыларға алғыс білдірілді.» Осы сөйлемдегі «байланысты» тіркесінің синтаксистік қызметі мен мағынасы:',
-    options: ['Іс-әрекеттің мақсатын білдіру', 'Іс-әрекеттің себебін негіздеу', 'Қарсылықты қатынасты көрсету', 'Уақыт аралығын межелеу'],
-    correctAnswer: 1,
-    explanation: '«...байланысты» тіркесі іс-әрекеттің (алғыс білдірудің) не себепті орындалғанын негіздеп тұр.'
+const PASS = 6 // деңгейді өту үшін 10 тапсырманың кемінде 6-уы
+
+function norm(s: string): string {
+  return s.trim().toLowerCase().replace(/[.!?,;:]+$/g, '').replace(/\s+/g, ' ')
+}
+
+function isCorrect(t: PlacementTask, a: Answer): boolean {
+  if (a === null) return false
+  switch (t.type) {
+    case 'choice':
+    case 'listen':
+      return a === t.answer
+    case 'fill':
+      return typeof a === 'string' && t.accepted.some((x) => norm(x) === norm(a))
+    case 'tf':
+      return a === (t.answer ? 'true' : 'false')
+    case 'error':
+      return a === t.wrong
+    case 'order': {
+      if (!Array.isArray(a)) return false
+      const got = a.join(' ')
+      return [t.words, ...(t.alts ?? [])].some((w) => w.join(' ') === got)
+    }
+    case 'match':
+      return (
+        Array.isArray(a) &&
+        a.length === t.pairs.length &&
+        t.pairs.every((p, i) => a[i] === p[1])
+      )
   }
-];
+}
+
+function correctText(t: PlacementTask): string {
+  switch (t.type) {
+    case 'choice':
+    case 'listen':
+      return t.answer
+    case 'fill':
+      return t.accepted[0]
+    case 'tf':
+      return t.answer ? 'Дұрыс (верно)' : 'Қате (неверно)'
+    case 'error':
+      return `${t.words[t.wrong]} → ${t.fix}`
+    case 'order':
+      return t.words.join(' ')
+    case 'match':
+      return t.pairs.map((p) => `${p[0]} = ${p[1]}`).join('; ')
+  }
+}
+
+function pickLevel(scores: Record<Level, number>): Level {
+  let result: Level = 'A1'
+  for (const l of PLACEMENT_LEVELS) {
+    if (scores[l] >= PASS) result = l
+    else break
+  }
+  return result
+}
+
+function TaskView({
+  task,
+  onAnswer,
+}: {
+  task: PlacementTask
+  onAnswer: (a: Answer) => void
+}) {
+  const [text, setText] = useState('')
+  const [selected, setSelected] = useState<Answer>(null)
+  const [chosen, setChosen] = useState<number[]>([])
+  const [matchVals, setMatchVals] = useState<string[]>(
+    task.type === 'match' ? task.pairs.map(() => '') : [],
+  )
+  const [revealed, setRevealed] = useState(false)
+
+  const options = useMemo(
+    () => (task.type === 'choice' || task.type === 'listen' ? shuffle(task.options) : []),
+    [task],
+  )
+  const bank = useMemo(() => (task.type === 'order' ? shuffle(task.words.map((w, i) => ({ w, i }))) : []), [task])
+  const rightSide = useMemo(() => (task.type === 'match' ? shuffle(task.pairs.map((p) => p[1])) : []), [task])
+
+  const optBtn = (o: string) => (
+    <button
+      key={o}
+      onClick={() => {
+        setSelected(o)
+        onAnswer(o)
+      }}
+      className={`text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+        selected === o
+          ? 'border-teal-500 bg-teal-500/10 text-teal-300'
+          : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-teal-500'
+      }`}
+    >
+      {o}
+    </button>
+  )
+
+  if (task.type === 'choice') {
+    return (
+      <div>
+        <p className="font-semibold text-white mb-4">{task.prompt}</p>
+        <div className="grid gap-2 sm:grid-cols-2">{options.map(optBtn)}</div>
+      </div>
+    )
+  }
+
+  if (task.type === 'listen') {
+    return (
+      <div>
+        <p className="font-semibold text-white mb-4">{task.prompt}</p>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <SpeakButton text={task.audio} withLabel />
+          <button
+            onClick={() => setRevealed(true)}
+            className="text-xs text-slate-400 underline hover:text-teal-300"
+          >
+            Дыбыс шықпаса, мәтінді көрсету
+          </button>
+        </div>
+        {revealed && <p className="mb-4 text-sm text-slate-300 italic">{task.audio}</p>}
+        <div className="grid gap-2">{options.map(optBtn)}</div>
+      </div>
+    )
+  }
+
+  if (task.type === 'tf') {
+    return (
+      <div>
+        <p className="font-semibold text-white mb-3">Мәтінді оқыңыз және пікірді бағалаңыз.</p>
+        <p className="mb-4 rounded-xl border border-slate-800 bg-slate-950 p-4 text-slate-200">{task.text}</p>
+        <p className="mb-3 font-semibold text-teal-300">{task.statement}</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[
+            ['true', 'Дұрыс (верно)'],
+            ['false', 'Қате (неверно)'],
+          ].map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => {
+                setSelected(v)
+                onAnswer(v)
+              }}
+              className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                selected === v
+                  ? 'border-teal-500 bg-teal-500/10 text-teal-300'
+                  : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-teal-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (task.type === 'fill') {
+    return (
+      <div>
+        <p className="font-semibold text-white mb-4">{task.prompt}</p>
+        <input
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value)
+            onAnswer(e.target.value.trim() ? e.target.value : null)
+          }}
+          placeholder="Жауабыңызды жазыңыз"
+          className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white text-sm outline-none focus:border-teal-500"
+        />
+        {task.hint && <p className="mt-2 text-xs text-slate-500">Кеңес: {task.hint}</p>}
+      </div>
+    )
+  }
+
+  if (task.type === 'error') {
+    return (
+      <div>
+        <p className="font-semibold text-white mb-4">{task.prompt}</p>
+        <div className="flex flex-wrap gap-2">
+          {task.words.map((w, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setSelected(i)
+                onAnswer(i)
+              }}
+              className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                selected === i
+                  ? 'border-teal-500 bg-teal-500/10 text-teal-300'
+                  : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-teal-500'
+              }`}
+            >
+              {w}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (task.type === 'order') {
+    const used = new Set(chosen)
+    const update = (next: number[]) => {
+      setChosen(next)
+      onAnswer(next.length === task.words.length ? next.map((i) => task.words[i]) : null)
+    }
+    return (
+      <div>
+        <p className="font-semibold text-white mb-4">{task.prompt}</p>
+        <div className="min-h-[52px] mb-3 flex flex-wrap gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-950 p-3">
+          {chosen.length === 0 && <span className="text-sm text-slate-500">Сөздерді ретімен басыңыз</span>}
+          {chosen.map((i, k) => (
+            <span key={k} className="px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-300 text-sm font-medium">
+              {task.words[i]}
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {bank.map((b) => (
+            <button
+              key={b.i}
+              disabled={used.has(b.i)}
+              onClick={() => update([...chosen, b.i])}
+              className="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-200 text-sm font-medium hover:border-teal-500 disabled:opacity-30"
+            >
+              {b.w}
+            </button>
+          ))}
+          <button
+            onClick={() => update([])}
+            className="px-4 py-2.5 rounded-xl border border-slate-700 text-xs text-slate-400 hover:text-teal-300"
+          >
+            Тазалау
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // match
+  return (
+    <div>
+      <p className="font-semibold text-white mb-4">{task.prompt}</p>
+      <div className="space-y-2">
+        {task.pairs.map((p, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <span className="w-36 font-bold text-white">{p[0]}</span>
+            <select
+              value={matchVals[i]}
+              onChange={(e) => {
+                const next = [...matchVals]
+                next[i] = e.target.value
+                setMatchVals(next)
+                onAnswer(next.every((v) => v) ? next : null)
+              }}
+              className="flex-1 px-3 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-200 text-sm outline-none focus:border-teal-500"
+            >
+              <option value="">Таңдаңыз</option>
+              {rightSide.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function AssessmentPage() {
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const total = placementTasks.length
+  const [started, setStarted] = useState(false)
+  const [index, setIndex] = useState(0)
+  const [answers, setAnswers] = useState<Answer[]>(() => placementTasks.map(() => null))
+  const [done, setDone] = useState(false)
 
-  const currentQuestion = assessmentQuestions[currentStep];
+  function setAnswer(a: Answer) {
+    setAnswers((prev) => {
+      const next = [...prev]
+      next[index] = a
+      return next
+    })
+  }
 
-  const handleSelectOption = (optionIndex: number) => {
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [currentQuestion.id]: optionIndex
-    }));
-  };
+  function restart() {
+    setAnswers(placementTasks.map(() => null))
+    setIndex(0)
+    setDone(false)
+    setStarted(true)
+  }
 
-  const handleNext = () => {
-    if (currentStep < assessmentQuestions.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      setIsSubmitted(true);
+  function finish() {
+    const scores = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 } as Record<Level, number>
+    placementTasks.forEach((t, i) => {
+      if (isCorrect(t, answers[i])) scores[t.level] += 1
+    })
+    try {
+      localStorage.setItem(
+        'qq_placement',
+        JSON.stringify({ level: pickLevel(scores), scores, date: new Date().toISOString() }),
+      )
+    } catch {
+      // сақтау мүмкін болмаса, нәтиже бәрібір экранда көрсетіледі
     }
-  };
+    setDone(true)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  };
-
-  const calculateResult = () => {
-    let score = 0;
-    assessmentQuestions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
-        score++;
-      }
-    });
-
-    const percentage = Math.round((score / assessmentQuestions.length) * 100);
-
-    let level = 'A1';
-    let description = 'Бастапқы деңгей (Beginner). Сіз негізгі сөздер мен қарапайым фразаларды үйренуден бастайсыз.';
-    
-    if (percentage >= 85) {
-      level = 'B2';
-      description = 'Жоғары орта деңгей (Upper-Intermediate). Сіз күрделі синтаксисті түсінесіз және пікіріңізді еркін жеткізе аласыз.';
-    } else if (percentage >= 60) {
-      level = 'B1';
-      description = 'Орта деңгей (Intermediate). Сіз сөйлемдерді жүйелі құрап, негізгі контекстті еркін түсінесіз.';
-    } else if (percentage >= 35) {
-      level = 'A2';
-      description = 'Базалық деңгей (Elementary). Сіз күнделікті қарапайым тақырыптарда диалог жүргізе аласыз.';
-    }
-
-    return { score, percentage, level, description };
-  };
-
-  const result = calculateResult();
-
-  return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/80 px-4 py-4 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2 text-teal-400 font-bold hover:text-teal-300">
-            <span>← Басты бетке</span>
+  const shell = (children: ReactNode) => (
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800">
+        <div className="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="text-sm text-teal-300 font-bold hover:text-teal-200">
+            ← QAZIR
           </Link>
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-            Деңгейді анықтау тесті
-          </span>
+          <span className="text-xs text-slate-400">Деңгей анықтау тесті</span>
         </div>
       </header>
+      <div className="mx-auto max-w-2xl px-4 py-8">{children}</div>
+    </main>
+  )
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 flex flex-col justify-center">
-        {!isSubmitted ? (
-          <div>
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between text-xs text-slate-400 mb-2 font-medium">
-                <span>Сұрақ {currentStep + 1} / {assessmentQuestions.length}</span>
-                <span>Деңгей: <strong className="text-teal-400">{currentQuestion.level}</strong></span>
+  if (!started) {
+    return shell(
+      <div>
+        <h1 className="text-3xl font-extrabold mb-3">Деңгей анықтау тесті</h1>
+        <p className="text-slate-300 leading-relaxed mb-4">
+          {total} тапсырма: таңдау, жазу, сәйкестендіру, сөйлем құрау, қате табу, тыңдау және оқу.
+          Тапсырмалар A1-ден C1-ге дейін біртіндеп қиындайды. Білмесеңіз, жауапсыз өткізіп жіберуге болады.
+        </p>
+        <ul className="text-sm text-slate-400 space-y-1 mb-6 list-disc pl-5">
+          <li>Орташа уақыты: 15–20 минут.</li>
+          <li>Тыңдау тапсырмалары үшін құрылғыңызда дыбыс қосулы болсын.</li>
+          <li>Нәтиже A1–C1 деңгейімен және әр деңгей бойынша ұпаймен көрсетіледі.</li>
+        </ul>
+        <button
+          onClick={() => setStarted(true)}
+          className="px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold"
+        >
+          Тестті бастау
+        </button>
+      </div>,
+    )
+  }
+
+  if (done) {
+    const scores = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 } as Record<Level, number>
+    placementTasks.forEach((t, i) => {
+      if (isCorrect(t, answers[i])) scores[t.level] += 1
+    })
+    const level = pickLevel(scores)
+    const sum = PLACEMENT_LEVELS.reduce((s, l) => s + scores[l], 0)
+    const wrong = placementTasks
+      .map((t, i) => ({ t, i }))
+      .filter(({ t, i }) => !isCorrect(t, answers[i]))
+
+    return shell(
+      <div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">
+          <p className="text-sm text-slate-400">Сіздің деңгейіңіз</p>
+          <p className="text-6xl font-extrabold text-teal-400 my-2">{level}</p>
+          <p className="text-slate-300">{LEVEL_NAMES[level]}</p>
+          <p className="text-sm text-slate-400 mt-1">
+            Жалпы нәтиже: {sum} / {total}
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {PLACEMENT_LEVELS.map((l) => (
+            <div key={l}>
+              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                <span>{LEVEL_NAMES[l]}</span>
+                <span>{scores[l]} / 10</span>
               </div>
-              <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+              <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-teal-400 to-emerald-400 h-2.5 transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / assessmentQuestions.length) * 100}%` }}
+                  className={`h-full ${scores[l] >= PASS ? 'bg-teal-500' : 'bg-slate-600'}`}
+                  style={{ width: `${scores[l] * 10}%` }}
                 />
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Question Card */}
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/20">
-                  {currentQuestion.category}
-                </span>
-              </div>
+        <p className="mt-6 text-sm text-slate-400">
+          Деңгей — қатарынан ең жоғары өтілген деңгей (әр деңгейде кемінде {PASS} дұрыс жауап). Нәтиже
+          шамамен бағалайды, сабақтар арқылы нақтылай аласыз.
+        </p>
 
-              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-slate-100 leading-snug">
-                {currentQuestion.question}
-              </h2>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/learning-path?level=${level}`}
+            className="px-5 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm"
+          >
+            {level} сабақтарын бастау
+          </Link>
+          <Link
+            href={`/learning-path?tab=grammar&level=${level}`}
+            className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 font-bold text-sm"
+          >
+            {level} грамматикасы
+          </Link>
+          <button
+            onClick={restart}
+            className="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-bold hover:text-teal-300"
+          >
+            Қайта тапсыру
+          </button>
+        </div>
 
-              {/* Options */}
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => {
-                  const isSelected = selectedAnswers[currentQuestion.id] === index;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleSelectOption(index)}
-                      className={`w-full text-left p-4 rounded-xl border font-medium transition-all duration-200 flex items-center justify-between ${
-                        isSelected
-                          ? 'border-teal-400 bg-teal-500/15 text-teal-200 shadow-md shadow-teal-500/10'
-                          : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:border-slate-500 hover:bg-slate-700/50'
-                      }`}
-                    >
-                      <span>{option}</span>
-                      <div
-                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                          isSelected ? 'border-teal-400 bg-teal-400' : 'border-slate-600'
-                        }`}
-                      >
-                        {isSelected && <div className="w-2 h-2 rounded-full bg-slate-900" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Navigation Controls */}
-              <div className="mt-8 flex justify-between items-center pt-4 border-t border-slate-700/50">
-                <button
-                  onClick={handlePrev}
-                  disabled={currentStep === 0}
-                  className="px-5 py-2.5 rounded-xl border border-slate-700 text-sm font-semibold text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Артқа
-                </button>
-
-                <button
-                  onClick={handleNext}
-                  disabled={selectedAnswers[currentQuestion.id] === undefined}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  {currentStep === assessmentQuestions.length - 1 ? 'Нәтижені көру' : 'Келесі сұрақ →'}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Results Screen */
-          <div className="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 sm:p-10 text-center shadow-2xl backdrop-blur-md">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-lg shadow-teal-500/20">
-              {result.level}
-            </div>
-
-            <h1 className="text-3xl font-extrabold mb-2 text-slate-100">
-              Сіздің деңгейіңіз: <span className="text-teal-400">{result.level}</span>
-            </h1>
-
-            <p className="text-slate-300 text-base max-w-lg mx-auto mb-6">
-              {result.description}
-            </p>
-
-            <div className="inline-flex items-center gap-6 px-6 py-3 rounded-xl bg-slate-900/60 border border-slate-700/60 mb-8">
-              <div>
-                <div className="text-xs text-slate-400 uppercase tracking-wider">Дұрыс жауаптар</div>
-                <div className="text-xl font-bold text-emerald-400">{result.score} / {assessmentQuestions.length}</div>
-              </div>
-              <div className="w-px h-8 bg-slate-700" />
-              <div>
-                <div className="text-xs text-slate-400 uppercase tracking-wider">Дәлдік көрсеткіші</div>
-                <div className="text-xl font-bold text-teal-400">{result.percentage}%</div>
-              </div>
-            </div>
-
-            {/* Error Analysis / Detailed Feedback */}
-            <div className="text-left mb-8 bg-slate-900/40 p-5 rounded-xl border border-slate-800">
-              <h3 className="text-md font-bold mb-3 text-slate-200">📊 Тапсырмалар бойынша талдау:</h3>
-              <div className="space-y-3">
-                {assessmentQuestions.map((q) => {
-                  const isCorrect = selectedAnswers[q.id] === q.correctAnswer;
-                  return (
-                    <div key={q.id} className="p-3 rounded-lg bg-slate-800/80 text-xs border border-slate-700/50">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-semibold text-slate-300">#{q.id} ({q.level} - {q.category})</span>
-                        <span className={isCorrect ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                          {isCorrect ? '✓ Дұрыс' : '✗ Қате'}
-                        </span>
-                      </div>
-                      {!isCorrect && (
-                        <p className="text-slate-400 mt-1">
-                          💡 <span className="text-slate-300">{q.explanation}</span>
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link
-                href="/learning-path"
-                className="px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 shadow-lg transition-all"
-              >
-                Оқу жоспарына өту ({result.level})
-              </Link>
-              <button
-                onClick={() => {
-                  setIsSubmitted(false);
-                  setCurrentStep(0);
-                  setSelectedAnswers({});
-                }}
-                className="px-6 py-3.5 rounded-xl text-base font-semibold text-slate-300 border border-slate-700 hover:bg-slate-800 transition-colors"
-              >
-                Тестті қайта тапсыру
-              </button>
+        {wrong.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-xl font-bold mb-3">Қателермен жұмыс ({wrong.length})</h2>
+            <div className="space-y-3">
+              {wrong.map(({ t, i }) => (
+                <div key={i} className="rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm">
+                  <p className="text-xs text-slate-500 mb-1">
+                    {i + 1}-тапсырма · {t.level}
+                  </p>
+                  <p className="text-slate-200">
+                    {t.type === 'tf' ? t.statement : t.type === 'listen' ? t.audio : t.prompt}
+                  </p>
+                  <p className="mt-2 text-emerald-400">Дұрыс жауап: {correctText(t)}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
-      </main>
-    </div>
-  );
+      </div>,
+    )
+  }
+
+  const task = placementTasks[index]
+  const answered = answers[index] !== null
+  const answeredCount = answers.filter((a) => a !== null).length
+
+  return shell(
+    <div>
+      <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+        <span>
+          {index + 1} / {total}
+        </span>
+        <span>{task.level}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-slate-800 mb-6 overflow-hidden">
+        <div className="h-full bg-teal-500 transition-all" style={{ width: `${(index / total) * 100}%` }} />
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+        <TaskView key={index} task={task} onAnswer={setAnswer} />
+      </div>
+
+      <div className="mt-6 flex items-center justify-between gap-3">
+        <button
+          onClick={() => setIndex((i) => Math.max(0, i - 1))}
+          disabled={index === 0}
+          className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-bold disabled:opacity-30"
+        >
+          ← Артқа
+        </button>
+        {index + 1 < total ? (
+          <button
+            onClick={() => setIndex(index + 1)}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold ${
+              answered
+                ? 'bg-teal-500 hover:bg-teal-400 text-slate-950'
+                : 'border border-slate-700 text-slate-400 hover:text-teal-300'
+            }`}
+          >
+            {answered ? 'Келесі →' : 'Өткізіп жіберу →'}
+          </button>
+        ) : (
+          <button
+            onClick={finish}
+            className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-sm font-bold"
+          >
+            Нәтижені көру ({answeredCount} / {total} жауап)
+          </button>
+        )}
+      </div>
+    </div>,
+  )
 }
