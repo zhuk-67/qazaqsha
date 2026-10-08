@@ -229,13 +229,15 @@ export default function LearningPathPage() {
           </button>
           <Link href="/check" className={`${navBase} ${navIdle}`}>✍️ Жазу</Link>
           <Link href="/review" className={`${navBase} ${navIdle}`}>
-            🔁 Қателер
+            🔁 Қате дәптері
             {mistakeCount > 0 && (
               <span className="ml-1 px-2 py-0.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-full border border-red-500/30">
                 {mistakeCount}
               </span>
             )}
           </Link>
+          <Link href="/repeat" className={`${navBase} ${navIdle}`}>🧩 Қайталау</Link>
+          <Link href="/weak" className={`${navBase} ${navIdle}`}>🎯 Әлсіз тұстарым</Link>
           <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>
           <Link href="/assessment" className={`${navBase} ${navIdle}`}>📝 Деңгей тесті</Link>
           <Link href="/stats" className={`${navBase} ${navIdle}`}>📊 Статистика</Link>
