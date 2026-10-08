@@ -65,6 +65,7 @@ export default function HomePage() {
     { icon: '📖', title: 'Сөздік', desc: 'Сөздер, іздеу, карточкалар', href: go('/learning-path?tab=vocab') },
     { icon: '🔁', title: 'Қателер', desc: 'Қателермен жұмыс', href: go('/review') },
     { icon: '📝', title: 'Деңгей тесті', desc: 'Деңгейіңді анықта', href: '/assessment' },
+    { icon: '🏋️', title: 'Жаттығулар', desc: 'Грамматика бойынша қайталау', href: go('/practice') },
     { icon: '📊', title: 'Статистика', desc: 'Нәтижелер мен белсенділік', href: go('/stats') },
   ]
 

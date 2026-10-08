@@ -234,6 +234,7 @@ export default function LearningPathPage() {
               </span>
             )}
           </Link>
+          <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>
           <Link href="/assessment" className={`${navBase} ${navIdle}`}>📝 Деңгей тесті</Link>
           <Link href="/stats" className={`${navBase} ${navIdle}`}>📊 Статистика</Link>
           <button
