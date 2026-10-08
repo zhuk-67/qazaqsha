@@ -69,6 +69,8 @@ export default function HomePage() {
     { icon: '🔁', title: 'Қате дәптері', desc: 'Қателерді қайталау', href: go('/review') },
     { icon: '🧩', title: 'Қайталау', desc: 'Сөздерді аралықпен қайталау', href: go('/repeat') },
     { icon: '🎯', title: 'Әлсіз тұстарым', desc: 'Қателер талдауы мен кеңес', href: go('/weak') },
+    { icon: '📅', title: 'Күннің тапсырмасы', desc: 'Күн сайын жаңа мини-жиынтық', href: go('/daily') },
+    { icon: '⏱️', title: '5 минуттық жаттығу', desc: 'Жылдам практика', href: go('/quick') },
     { icon: '🏋️', title: 'Жаттығулар', desc: 'Грамматика бойынша қайталау', href: go('/practice') },
     { icon: '📝', title: 'Деңгей тесті', desc: 'Деңгейіңді анықта', href: '/assessment' },
     { icon: '📊', title: 'Статистика', desc: 'Нәтижелер мен белсенділік', href: go('/stats') },
