@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { collectWords, type WordEntry } from '@/lib/words'
+import { loadMyWords } from '@/lib/mywords'
 import { loadSrs, saveSrs, gradeEntry, todayStr, type SrsMap } from '@/lib/srs'
 import { shuffle } from '@/lib/helpers'
 import SpeakButton from '@/components/SpeakButton'
@@ -32,7 +33,15 @@ export default function RepeatPage() {
       }
       const { data } = await supabase.from('profiles').select('completed_lessons').eq('id', user.id).maybeSingle()
       const completed = (data?.completed_lessons as string[] | null) ?? []
-      setPool(collectWords().filter((w) => completed.includes(w.lessonId)))
+      const mineWords: WordEntry[] = loadMyWords().map((w) => ({
+        key: `my|${w.kk}`,
+        kk: w.kk,
+        ru: w.ru,
+        note: w.note,
+        lessonId: 'my',
+        lessonTitle: 'Менің сөздерім',
+      }))
+      setPool([...collectWords().filter((w) => completed.includes(w.lessonId)), ...mineWords])
       setSrs(loadSrs())
       setLoading(false)
     }

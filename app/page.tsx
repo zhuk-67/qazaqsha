@@ -66,7 +66,7 @@ export default function HomePage() {
     { icon: '✍️', title: 'Жазу', desc: 'ЖИ мәтініңді тексереді', href: go('/check') },
     { icon: '🧠', title: 'Грамматика', desc: 'Ережелер мен мысалдар', href: go('/learning-path?tab=grammar') },
     { icon: '📰', title: 'Қазақша мәтіндер', desc: 'Оқу, сөзді басып аудару, сұрақтар', href: go('/texts') },
-    { icon: '📖', title: 'Сөздік', desc: 'Сөздер, іздеу, карточкалар', href: go('/learning-path?tab=vocab') },
+    { icon: '📖', title: 'Сөздік', desc: 'Іздеу, мысалдар, менің сөздерім', href: go('/dictionary') },
     { icon: '🔁', title: 'Қате дәптері', desc: 'Қателерді қайталау', href: go('/review') },
     { icon: '🧩', title: 'Қайталау', desc: 'Сөздерді аралықпен қайталау', href: go('/repeat') },
     { icon: '🎯', title: 'Әлсіз тұстарым', desc: 'Қателер талдауы мен кеңес', href: go('/weak') },

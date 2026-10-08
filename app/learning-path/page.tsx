@@ -241,6 +241,7 @@ export default function LearningPathPage() {
           <Link href="/daily" className={`${navBase} ${navIdle}`}>📅 Күннің тапсырмасы</Link>
           <Link href="/quick" className={`${navBase} ${navIdle}`}>⏱️ 5 минуттық жаттығу</Link>
           <Link href="/texts" className={`${navBase} ${navIdle}`}>📰 Қазақша мәтіндер</Link>
+          <Link href="/dictionary" className={`${navBase} ${navIdle}`}>📚 Кеңейтілген сөздік</Link>
           <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>
           <Link href="/assessment" className={`${navBase} ${navIdle}`}>📝 Деңгей тесті</Link>
           <Link href="/stats" className={`${navBase} ${navIdle}`}>📊 Статистика</Link>
