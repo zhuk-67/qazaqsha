@@ -9,6 +9,7 @@ import { loadHistory, localDay, type HistoryEntry } from '@/lib/history'
 import { loadSrs } from '@/lib/srs'
 import { loadMyWords } from '@/lib/mywords'
 import { loadCheckpoints, PASS_PERCENT } from '@/lib/checkpoint'
+import { situations } from '@/lib/situations'
 
 interface Item {
   at: string
@@ -33,6 +34,14 @@ function kindInfo(e: HistoryEntry): { title: string; icon: string } {
   if (e.kind === 'daily') return { title: 'Күннің тапсырмасы', icon: '📅' }
   if (e.kind === 'quick') return { title: '5 минуттық жаттығу', icon: '⏱️' }
   if (e.kind.startsWith('checkpoint:')) return { title: `Checkpoint ${e.kind.split(':')[1]}`, icon: '🏁' }
+  if (e.kind.startsWith('game:')) {
+    const names: Record<string, string> = { order: 'Сөйлем құрау', error: 'Қатені тап', match: 'Сәйкестендіру', blank: 'Сөзді қой', odd: 'Артығын тап' }
+    return { title: `Ойын: ${names[e.kind.split(':')[1]] ?? e.kind}`, icon: '🎮' }
+  }
+  if (e.kind.startsWith('situation:')) {
+    const sit = situations.find((x) => x.id === e.kind.split(':')[1])
+    return { title: `Жағдай: ${sit?.title ?? e.kind}`, icon: '💬' }
+  }
   return { title: e.kind, icon: '📝' }
 }
 

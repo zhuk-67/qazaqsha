@@ -74,6 +74,8 @@ export default function HomePage() {
     { icon: '⏱️', title: '5 минуттық жаттығу', desc: 'Жылдам практика', href: go('/quick') },
     { icon: '🗺️', title: 'Оқу жолы', desc: 'A1-ден C1-ге дейінгі жол және checkpoint', href: go('/path') },
     { icon: '🏅', title: 'Тарих және челлендждер', desc: 'Оқу тарихы мен міндеттер', href: go('/history') },
+    { icon: '🎮', title: 'Ойын жаттығулары', desc: 'Сөйлем құрау, қате табу, сәйкестендіру', href: go('/games') },
+    { icon: '💬', title: 'Өмірлік жағдайлар', desc: 'Диалогтар: дүкен, дәрігер, кафе', href: go('/situations') },
     { icon: '🏋️', title: 'Жаттығулар', desc: 'Грамматика бойынша қайталау', href: go('/practice') },
     { icon: '📝', title: 'Деңгей тесті', desc: 'Деңгейіңді анықта', href: '/assessment' },
     { icon: '📊', title: 'Статистика', desc: 'Нәтижелер мен белсенділік', href: go('/stats') },

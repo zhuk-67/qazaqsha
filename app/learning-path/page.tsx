@@ -244,6 +244,8 @@ export default function LearningPathPage() {
           <Link href="/dictionary" className={`${navBase} ${navIdle}`}>📚 Кеңейтілген сөздік</Link>
           <Link href="/path" className={`${navBase} ${navIdle}`}>🗺️ Оқу жолы</Link>
           <Link href="/history" className={`${navBase} ${navIdle}`}>🏅 Тарих және челлендждер</Link>
+          <Link href="/games" className={`${navBase} ${navIdle}`}>🎮 Ойын жаттығулары</Link>
+          <Link href="/situations" className={`${navBase} ${navIdle}`}>💬 Өмірлік жағдайлар</Link>
           <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>
           <Link href="/assessment" className={`${navBase} ${navIdle}`}>📝 Деңгей тесті</Link>
           <Link href="/stats" className={`${navBase} ${navIdle}`}>📊 Статистика</Link>
