@@ -244,3 +244,19 @@ html.light input, html.light textarea, html.light select { background-color: #ff
 html.light a.bg-slate-900:hover { border-color: #007c99 !important; box-shadow: 0 14px 34px -18px rgba(0,124,153,.5) !important; }
 html.light ::selection { background: #f2b705; color: #3a2c00; }
 @media (prefers-reduced-motion: reduce) { a.bg-slate-900:hover { transform: none; } }
+
+/* QAZIR: круги и свечение видны на всех страницах */
+.bg-slate-950, html.light .bg-slate-950 { background-color: transparent !important; }
+html::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(420px 420px at 88% 8%, rgba(242,183,5,.22), transparent 70%),
+    radial-gradient(560px 560px at 6% 92%, rgba(60,196,224,.22), transparent 70%),
+    radial-gradient(380px 380px at 50% 45%, rgba(60,196,224,.08), transparent 70%);
+  filter: blur(24px);
+}
+html.light::before {
+  background:
+    radial-gradient(420px 420px at 88% 8%, rgba(242,183,5,.28), transparent 70%),
+    radial-gradient(560px 560px at 6% 92%, rgba(0,124,153,.16), transparent 70%);
+}
