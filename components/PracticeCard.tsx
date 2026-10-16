@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import SpeakButton from '@/components/SpeakButton'
 import type { PQ } from '@/lib/practice'
+import { warmMessage } from '@/lib/mood'
 
 function norm(s: string): string {
   return s.trim().toLowerCase().replace(/[.!?,;:]+$/g, '').replace(/\s+/g, ' ')
@@ -16,6 +17,7 @@ export default function PracticeCard({ q, onDone }: { q: PQ; onDone: (ok: boolea
 
   const done = q.kind === 'choice' ? picked !== null : res !== null
   const ok = q.kind === 'choice' ? picked === q.answer : res === true
+  const warm = useMemo(() => warmMessage(ok), [ok, done])
 
   function pick(i: number) {
     if (q.kind !== 'choice' || picked !== null) return
@@ -88,6 +90,7 @@ export default function PracticeCard({ q, onDone }: { q: PQ; onDone: (ok: boolea
       {done && (
         <p className={`mt-3 text-sm ${ok ? 'text-emerald-400' : 'text-red-400'}`}>
           <span className="font-bold">{ok ? 'Дұрыс. ' : 'Қате. '}</span>
+          <span className="italic">{warm} </span>
           {q.kind === 'fill' && !ok && <span className="font-bold">Дұрыс жауап: {q.accepted[0]}. </span>}
           <span className="text-slate-300">{q.explain}</span>
         </p>

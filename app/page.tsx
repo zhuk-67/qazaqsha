@@ -8,6 +8,7 @@ import { levelDefs, doneInLevel, currentLevelId, totalDone, totalLessonCount } f
 import ThemeToggle from '@/components/ThemeToggle'
 import LeaderboardPanel from '@/components/LeaderboardPanel'
 import Avatar from '@/components/Avatar'
+import ReasonBanner from '@/components/ReasonBanner'
 
 const lessons = Object.values(lessonContent)
 const wordPool: { kk: string; ru: string }[] = lessons.flatMap((l) => [
@@ -62,6 +63,7 @@ export default function HomePage() {
 
   const sections = [
     { icon: '🤖', title: 'ЖИ репетитор', desc: 'Сұрақ қой, ЖИ түсіндіреді, оқу жоспарын құрады', href: go('/tutor') },
+    { icon: '💬', title: 'Күйің қалай?', desc: 'ЖИ қолдайды, мақсатың мен себебің', href: go('/mood') },
     { icon: '📚', title: 'Сабақтар', desc: `${totalLessonCount} сабақ: A1-ден C1-ге дейін`, href: go('/learning-path') },
     { icon: '🎧', title: 'Тыңдап жаз', desc: 'Сөзді тыңдап, дұрыс жаз', href: go('/listen') },
     { icon: '✍️', title: 'Жазу', desc: 'ЖИ мәтініңді тексереді', href: go('/check') },
@@ -232,6 +234,8 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      <ReasonBanner />
 
       {/* Негізгі бөлімдер */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { shuffle, normalizeAnswer } from '@/lib/helpers'
 import AiExplain, { type AiContext } from '@/components/AiExplain'
+import { warmMessage } from '@/lib/mood'
 import {
   isChoiceQuestion,
   type ChoiceQuestion,
@@ -30,6 +31,7 @@ function Feedback({
   extra?: string
   ai?: AiContext
 }) {
+  const [warm] = useState(() => warmMessage(correct))
   return (
     <div
       className={`mb-4 p-4 rounded-xl text-sm border ${
@@ -38,7 +40,9 @@ function Feedback({
           : 'bg-red-500/10 border-red-500/30 text-red-300'
       }`}
     >
-      <p className="font-bold mb-1">{correct ? 'Дұрыс! ✓' : 'Қате ✗'}</p>
+      <p className="font-bold mb-1">
+        {correct ? 'Дұрыс! ✓' : 'Қате ✗'} <span className="font-normal opacity-90">{warm}</span>
+      </p>
       {extra && <p className="mb-1">{extra}</p>}
       <p>{explain}</p>
       {!correct && ai && <AiExplain ctx={ai} />}
