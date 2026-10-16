@@ -61,6 +61,7 @@ export default function HomePage() {
   const percent = Math.round((totalDone(completed) / totalLessonCount) * 100)
 
   const sections = [
+    { icon: '🤖', title: 'ЖИ репетитор', desc: 'Сұрақ қой, ЖИ түсіндіреді, оқу жоспарын құрады', href: go('/tutor') },
     { icon: '📚', title: 'Сабақтар', desc: `${totalLessonCount} сабақ: A1-ден C1-ге дейін`, href: go('/learning-path') },
     { icon: '🎧', title: 'Тыңдап жаз', desc: 'Сөзді тыңдап, дұрыс жаз', href: go('/listen') },
     { icon: '✍️', title: 'Жазу', desc: 'ЖИ мәтініңді тексереді', href: go('/check') },
