@@ -231,6 +231,9 @@ export default function GrammarTab() {
 
   useEffect(() => {
     setBest(loadBest())
+    // Сілтемемен нақты тақырыпты ашу: /learning-path?tab=grammar&topic=sy-voice
+    const id = new URLSearchParams(window.location.search).get('topic')
+    if (id && grammarTopics.some((t) => t.id === id)) setOpenId(id)
   }, [])
 
   const topic = grammarTopics.find((t) => t.id === openId)

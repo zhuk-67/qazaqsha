@@ -1,6 +1,7 @@
 // Кеңейтілген сөздік: жиі қолданылатын сөздер (сөз табы, деңгей, мысал)
 
 import { collectWords } from '@/lib/words'
+import { levelOfLesson } from '@/lib/levels'
 
 export type Pos = 'N' | 'A' | 'V' | 'D' | 'P' | 'C' | 'R'
 
@@ -167,7 +168,7 @@ export function allEntries(): DictEntry[] {
   }
   for (const w of collectWords()) {
     const key = w.kk.toLowerCase()
-    const level = w.lessonId.split('-')[0].toUpperCase()
+    const level = levelOfLesson(w.lessonId) ?? w.lessonId.split('-')[0].toUpperCase()
     const base = map.get(key)
     if (base) {
       base.lessonId = w.lessonId

@@ -246,6 +246,7 @@ export default function LearningPathPage() {
           <Link href="/history" className={`${navBase} ${navIdle}`}>🏅 Тарих және челлендждер</Link>
           <Link href="/games" className={`${navBase} ${navIdle}`}>🎮 Ойын жаттығулары</Link>
           <Link href="/situations" className={`${navBase} ${navIdle}`}>💬 Өмірлік жағдайлар</Link>
+          <Link href="/levels" className={`${navBase} ${navIdle}`}>🧭 Деңгейлер</Link>
           <Link href="/mood" className={`${navBase} ${navIdle}`}>💬 Күйің қалай?</Link>
           <Link href="/tutor" className={`${navBase} ${navIdle}`}>🤖 ЖИ репетитор</Link>
           <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>

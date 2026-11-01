@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { levelOfLesson } from '@/lib/levels'
 import { supabase } from '@/lib/supabase'
 import { lessonContent } from '@/lib/lessons'
 import { grammarTopics } from '@/lib/grammar'
@@ -79,7 +80,7 @@ export default function WeakPage() {
         wrongByLesson[r.lesson_id] = (wrongByLesson[r.lesson_id] ?? 0) + r.wrong_count
         const t = q.type ?? 'choice'
         typeCount[t] = (typeCount[t] ?? 0) + 1
-        const lv = r.lesson_id.split('-')[0].toUpperCase()
+        const lv = levelOfLesson(r.lesson_id) ?? r.lesson_id.split('-')[0].toUpperCase()
         levelCount[lv] = (levelCount[lv] ?? 0) + 1
       }
       setMistakeTotal(total)

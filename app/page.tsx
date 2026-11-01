@@ -64,6 +64,7 @@ export default function HomePage() {
   const sections = [
     { icon: '🤖', title: 'ЖИ репетитор', desc: 'Сұрақ қой, ЖИ түсіндіреді, оқу жоспарын құрады', href: go('/tutor') },
     { icon: '💬', title: 'Күйің қалай?', desc: 'ЖИ қолдайды, мақсатың мен себебің', href: go('/mood') },
+    { icon: '🧭', title: 'Деңгейлер', desc: 'A1–C2: бағдарлама мен прогресс', href: '/levels' },
     { icon: '📚', title: 'Сабақтар', desc: `${totalLessonCount} сабақ: A1-ден C1-ге дейін`, href: go('/learning-path') },
     { icon: '🎧', title: 'Тыңдап жаз', desc: 'Сөзді тыңдап, дұрыс жаз', href: go('/listen') },
     { icon: '✍️', title: 'Жазу', desc: 'ЖИ мәтініңді тексереді', href: go('/check') },
