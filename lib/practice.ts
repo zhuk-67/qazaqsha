@@ -1,5 +1,5 @@
 import { grammarTopics, type GrammarQuestion } from '@/lib/grammar'
-import { levelDefs, currentLevelId } from '@/lib/levels'
+import { levelDefs, currentLevelId, legacyIds } from '@/lib/levels'
 import { collectWords, type WordEntry } from '@/lib/words'
 
 export type PQ = GrammarQuestion & { audio?: string; tag: string }
@@ -35,7 +35,7 @@ export function userWords(completed: string[]): { pool: WordEntry[]; all: WordEn
   const all = collectWords()
   let pool = all.filter((w) => completed.includes(w.lessonId))
   if (pool.length < 8) {
-    const a1 = new Set((levelDefs.find((l) => l.id === 'A1')?.lessons ?? []).map((l) => l.id))
+    const a1 = new Set(legacyIds('A1'))
     pool = all.filter((w) => a1.has(w.lessonId))
   }
   return { pool, all }

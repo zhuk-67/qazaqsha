@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { lessonContent } from '@/lib/lessons'
 import {
   levelDefs,
   doneInLevel,
@@ -246,7 +245,6 @@ export default function LearningPathPage() {
           <Link href="/history" className={`${navBase} ${navIdle}`}>🏅 Тарих және челлендждер</Link>
           <Link href="/games" className={`${navBase} ${navIdle}`}>🎮 Ойын жаттығулары</Link>
           <Link href="/situations" className={`${navBase} ${navIdle}`}>💬 Өмірлік жағдайлар</Link>
-          <Link href="/levels" className={`${navBase} ${navIdle}`}>🧭 Деңгейлер</Link>
           <Link href="/mood" className={`${navBase} ${navIdle}`}>💬 Күйің қалай?</Link>
           <Link href="/tutor" className={`${navBase} ${navIdle}`}>🤖 ЖИ репетитор</Link>
           <Link href="/practice" className={`${navBase} ${navIdle}`}>🏋️ Жаттығулар</Link>
@@ -405,28 +403,20 @@ export default function LearningPathPage() {
                             <span className="px-3 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold">
                               ✓ Өтілді
                             </span>
-                            {lessonContent[lesson.id] && (
-                              <Link
-                                href={`/lesson/${lesson.id}`}
-                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 rounded-xl text-xs font-bold transition-all"
-                              >
-                                Қайталау
-                              </Link>
-                            )}
+                            <Link
+                              href={`/study/${lesson.id}`}
+                              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 rounded-xl text-xs font-bold transition-all"
+                            >
+                              Қайталау
+                            </Link>
                           </div>
                         ) : isUnlocked ? (
-                          lessonContent[lesson.id] ? (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all inline-block"
-                            >
-                              Бастау
-                            </Link>
-                          ) : (
-                            <span className="px-3 py-2 bg-slate-800 text-teal-300 border border-teal-500/30 rounded-xl text-xs font-bold">
-                              Сабақ жақында ашылады
-                            </span>
-                          )
+                          <Link
+                            href={`/study/${lesson.id}`}
+                            className="px-5 py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-bold rounded-xl text-sm hover:scale-105 transition-all inline-block"
+                          >
+                            Бастау
+                          </Link>
                         ) : (
                           <span className="px-3 py-2 bg-slate-800 text-slate-500 border border-slate-700 rounded-xl text-xs font-bold">
                             🔒 Құлыпталған
@@ -437,6 +427,23 @@ export default function LearningPathPage() {
                   )
                 })}
               </div>
+
+              {level.soon.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-bold text-slate-300 mb-2">Бағдарламаның келесі тақырыптары</h4>
+                  <div className="space-y-2">
+                    {level.soon.map((s) => (
+                      <div key={s.n} className="px-4 py-3 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center justify-between gap-3 opacity-80">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold">{s.n}. {s.title}</p>
+                          <p className="text-xs text-slate-400">{s.desc}</p>
+                        </div>
+                        <span className="text-xs text-slate-400 shrink-0 text-right">{s.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Келесі деңгей */}
               <div className="mt-8">

@@ -93,7 +93,7 @@ export default function PathPage() {
                     </div>
                   )
                   return unlocked ? (
-                    <Link key={l.id} href={`/lesson/${l.id}`} className="block hover:opacity-90">
+                    <Link key={l.id} href={`/study/${l.id}`} className="block hover:opacity-90">
                       {body}
                     </Link>
                   ) : (

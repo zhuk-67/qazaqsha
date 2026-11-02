@@ -1,5 +1,5 @@
-import { lessonContent } from '@/lib/lessons'
 import { levelDefs, type LevelId } from '@/lib/levels'
+import { curriculum } from '@/lib/curriculum'
 import { grammarTopics } from '@/lib/grammar'
 import { pick, type PQ } from '@/lib/practice'
 
@@ -26,19 +26,17 @@ export function saveCheckpoint(level: string, percent: number): Record<string, n
   return all
 }
 
-// Деңгейдің сабақтарынан 12 және грамматикадан 6 сұрақ
+// Деңгей бағдарламасының тақырыптарынан 14 және деңгейдің грамматикасынан 6 сұрақ
 export function buildCheckpoint(level: LevelId): PQ[] {
-  const def = levelDefs.find((l) => l.id === level)
   const fromLessons: PQ[] = []
-  for (const meta of def?.lessons ?? []) {
-    const lesson = lessonContent[meta.id]
-    if (!lesson) continue
-    for (const q of lesson.questions) {
-      if (q.type === 'write') {
-        fromLessons.push({ kind: 'fill', prompt: q.prompt, accepted: q.accepted.map((a) => a.toLowerCase()), explain: q.explain, hint: q.hint ?? '', tag: lesson.title })
-      } else if (q.type === undefined || q.type === 'choice') {
-        fromLessons.push({ kind: 'choice', prompt: q.prompt, options: q.options, answer: q.answer, explain: q.explain, tag: lesson.title })
-      }
+  const used = new Set<string>()
+  for (const tp of curriculum[level]) {
+    for (const id of tp.ids) {
+      if (used.has(id)) continue
+      used.add(id)
+      const topic = grammarTopics.find((g) => g.id === id)
+      if (!topic) continue
+      for (const q of [...topic.exercises, ...topic.quiz]) fromLessons.push({ ...q, tag: topic.title })
     }
   }
   const grammar: PQ[] = []
@@ -47,6 +45,7 @@ export function buildCheckpoint(level: LevelId): PQ[] {
     for (const q of [...t.exercises, ...t.quiz]) grammar.push({ ...q, tag: 'Грамматика' })
   }
   const rnd = Math.random
-  const picked = [...pick(fromLessons, 12, rnd), ...pick(grammar, 6, rnd)]
+  const seen = new Set<string>()
+  const picked = [...pick(fromLessons, 14, rnd), ...pick(grammar, 6, rnd)].filter((q) => (seen.has(q.prompt) ? false : (seen.add(q.prompt), true)))
   return pick(picked, picked.length, rnd)
 }

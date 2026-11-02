@@ -56,7 +56,7 @@ export const curriculum: Record<CurLevel, CurTopic[]> = {
     t(18, 'Қарапайым сөйлем құрау', 'Построение простых предложений', ['sy-simple']),
   ],
   A2: [
-    t(1, 'Септік жалғауларының толық жүйесі', 'Полная система падежей', ['cases', 'case-genitive', 'case-dative', 'case-accusative', 'case-locative', 'case-ablative', 'case-instrumental']),
+    t(1, 'Септік жалғауларының толық жүйесі', 'Полная система падежей', ['case-genitive', 'case-dative', 'case-accusative', 'case-locative', 'case-ablative', 'case-instrumental']),
     t(2, 'Тәуелдік жалғауының толық жүйесі', 'Полная система притяжательных окончаний', ['possessive'], true),
     t(3, 'Жіктік жалғау және оның қолданысы', 'Личные окончания и их использование', ['personal-endings']),
     t(4, 'Жедел өткен шақ', 'Прошедшее категорическое время', ['past-tense']),
@@ -71,9 +71,9 @@ export const curriculum: Record<CurLevel, CurTopic[]> = {
     t(13, 'Сын есімнің шырайлары', 'Степени сравнения прилагательных', ['adjectives']),
     t(14, 'Есептік және реттік сан есім', 'Количественные и порядковые числительные', ['wc-numeral'], true),
     t(15, 'Болымсыз құрылымдар', 'Отрицательные конструкции', ['sy-negation']),
-    t(16, 'Себеп-салдар жалғаулықтары', 'Причинно-следственные союзы', ['sy-cause'], true),
+    t(16, 'Себеп-салдар жалғаулықтары', 'Причинно-следственные союзы'),
     t(17, 'Салыстыру құрылымдары', 'Сравнительные конструкции', ['adjectives'], true),
-    t(18, 'Көмекші етістіктер: бастапқы қолданыс', 'Начальное использование вспомогательных глаголов', ['sy-compoundverb'], true),
+    t(18, 'Көмекші етістіктер: бастапқы қолданыс', 'Начальное использование вспомогательных глаголов'),
   ],
   B1: [
     t(1, 'Бұрынғы өткен шақ', 'Давнопрошедшее время'),
@@ -136,11 +136,61 @@ export const curriculum: Record<CurLevel, CurTopic[]> = {
   C2: [],
 }
 
-export function curStats(level: CurLevel): { ready: number; partial: number; planned: number; total: number } {
+// ---- Сабақтар: бір тақырып бірнеше жолда қайталанбауы үшін «иесі» бір ғана сабақ болады ----
+export type CurState = 'open' | 'covered' | 'planned'
+
+export function lessonId(level: CurLevel, n: number): string {
+  return `${level.toLowerCase()}-g${String(n).padStart(2, '0')}`
+}
+
+const ORDER: CurLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
+
+function keyOf(tp: CurTopic): string {
+  return tp.ids.join('+')
+}
+
+const owners = new Map<string, string>() // key -> lessonId
+for (const pass of ['ready', 'partial'] as CurStatus[]) {
+  for (const lv of ORDER) {
+    for (const tp of curriculum[lv]) {
+      if (tp.status !== pass) continue
+      const k = keyOf(tp)
+      if (!owners.has(k)) owners.set(k, lessonId(lv, tp.n))
+    }
+  }
+}
+
+export function lessonState(level: CurLevel, tp: CurTopic): CurState {
+  if (tp.ids.length === 0) return 'planned'
+  return owners.get(keyOf(tp)) === lessonId(level, tp.n) ? 'open' : 'covered'
+}
+
+// Қамтылған тақырып қай сабақта түсіндірілетінін көрсетеміз
+export function coveredIn(tp: CurTopic): { level: CurLevel; n: number } | null {
+  const own = owners.get(keyOf(tp))
+  if (!own) return null
+  for (const lv of ORDER) for (const x of curriculum[lv]) if (lessonId(lv, x.n) === own) return { level: lv, n: x.n }
+  return null
+}
+
+export function findLesson(id: string): { level: CurLevel; topic: CurTopic } | null {
+  for (const lv of ORDER) for (const tp of curriculum[lv]) if (lessonId(lv, tp.n) === id && lessonState(lv, tp) === 'open') return { level: lv, topic: tp }
+  return null
+}
+
+export function topicIcon(tp: CurTopic): string {
+  const id = tp.ids[0] ?? ''
+  if (id.startsWith('ph-')) return '🔤'
+  if (id.startsWith('case')) return '📍'
+  if (id.startsWith('sy-')) return '🧱'
+  return '🧩'
+}
+
+export function curStats(level: CurLevel): { open: number; covered: number; planned: number; total: number } {
   const list = curriculum[level]
-  const ready = list.filter((x) => x.status === 'ready').length
-  const partial = list.filter((x) => x.status === 'partial').length
-  return { ready, partial, planned: list.length - ready - partial, total: list.length }
+  const open = list.filter((x) => lessonState(level, x) === 'open').length
+  const covered = list.filter((x) => lessonState(level, x) === 'covered').length
+  return { open, covered, planned: list.length - open - covered, total: list.length }
 }
 
 export function curLevelByParam(p: string | undefined): CurLevelInfo | undefined {
